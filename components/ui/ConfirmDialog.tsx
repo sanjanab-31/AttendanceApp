@@ -1,13 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useRef } from "react";
 import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    Animated,
+    Easing,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 type ConfirmDialogProps = {

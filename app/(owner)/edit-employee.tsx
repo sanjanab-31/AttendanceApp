@@ -1,17 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { useData } from '@/src/context/DataContext';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/src/context/ToastContext';
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useData } from "@/src/context/DataContext";
+import { useToast } from "@/src/context/ToastContext";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type InputFieldProps = {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
+  keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
   maxLength?: number;
 };
 
@@ -20,7 +29,7 @@ function InputField({
   value,
   onChangeText,
   placeholder,
-  keyboardType = 'default',
+  keyboardType = "default",
   maxLength,
 }: InputFieldProps) {
   return (
@@ -47,11 +56,11 @@ export default function EditEmployee() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    hourlyRate: '',
-    joiningDate: '',
+    name: "",
+    phone: "",
+    email: "",
+    hourlyRate: "",
+    joiningDate: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -77,23 +86,32 @@ export default function EditEmployee() {
     const normalizedEmail = email.trim().toLowerCase();
     const parsedRate = parseFloat(hourlyRate);
 
-    if (!trimmedName || !trimmedPhone || !normalizedEmail || !hourlyRate || !joiningDate) {
-      Alert.alert('Error', 'Please fill all fields');
+    if (
+      !trimmedName ||
+      !trimmedPhone ||
+      !normalizedEmail ||
+      !hourlyRate ||
+      !joiningDate
+    ) {
+      Alert.alert("Error", "Please fill all fields");
       return;
     }
 
     if (!phoneRegex.test(trimmedPhone)) {
-      Alert.alert('Invalid Phone', 'Phone number must be exactly 10 digits.');
+      Alert.alert("Invalid Phone", "Phone number must be exactly 10 digits.");
       return;
     }
 
     if (!emailRegex.test(normalizedEmail)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
     if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
-      Alert.alert('Invalid Rate', 'Hourly rate must be a valid number greater than 0.');
+      Alert.alert(
+        "Invalid Rate",
+        "Hourly rate must be a valid number greater than 0.",
+      );
       return;
     }
 
@@ -117,11 +135,11 @@ export default function EditEmployee() {
         joiningDate,
       });
 
-      showToast('Employee updated successfully!', 'success');
+      showToast("Employee updated successfully!", "success");
       setConfirmVisible(false);
       router.back();
     } catch (error: any) {
-      showToast(error?.message || 'Unable to update employee.', 'error');
+      showToast(error?.message || "Unable to update employee.", "error");
     } finally {
       setLoading(false);
     }
@@ -129,15 +147,21 @@ export default function EditEmployee() {
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <ScrollView className="px-6 py-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          className="px-6 py-6"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <InputField
             label="Full Name"
             value={formData.name}
-            onChangeText={(text: string) => setFormData((prev) => ({ ...prev, name: text }))}
+            onChangeText={(text: string) =>
+              setFormData((prev) => ({ ...prev, name: text }))
+            }
             placeholder="John Doe"
           />
           <InputField
@@ -146,7 +170,7 @@ export default function EditEmployee() {
             onChangeText={(text: string) =>
               setFormData((prev) => ({
                 ...prev,
-                phone: text.replace(/[^\d]/g, '').slice(0, 10),
+                phone: text.replace(/[^\d]/g, "").slice(0, 10),
               }))
             }
             placeholder="1234567890"
@@ -161,30 +185,38 @@ export default function EditEmployee() {
           <InputField
             label="Email Address"
             value={formData.email}
-            onChangeText={(text: string) => setFormData((prev) => ({ ...prev, email: text }))}
+            onChangeText={(text: string) =>
+              setFormData((prev) => ({ ...prev, email: text }))
+            }
             placeholder="john@example.com"
             keyboardType="email-address"
           />
           <InputField
             label="Hourly Rate (₹)"
             value={formData.hourlyRate}
-            onChangeText={(text: string) => setFormData((prev) => ({ ...prev, hourlyRate: text }))}
+            onChangeText={(text: string) =>
+              setFormData((prev) => ({ ...prev, hourlyRate: text }))
+            }
             placeholder="500"
             keyboardType="numeric"
           />
           <InputField
             label="Joining Date"
             value={formData.joiningDate}
-            onChangeText={(text: string) => setFormData((prev) => ({ ...prev, joiningDate: text }))}
+            onChangeText={(text: string) =>
+              setFormData((prev) => ({ ...prev, joiningDate: text }))
+            }
             placeholder="YYYY-MM-DD"
           />
 
-          <TouchableOpacity 
-            className={`bg-blue-600 p-4 rounded-2xl mt-4 mb-10 items-center ${loading ? 'opacity-70' : ''}`}
+          <TouchableOpacity
+            className={`bg-blue-600 p-4 rounded-2xl mt-4 mb-10 items-center ${loading ? "opacity-70" : ""}`}
             onPress={handleSave}
             disabled={loading}
           >
-            <Text className="text-white font-bold text-lg">{loading ? 'Saving...' : 'Update Details'}</Text>
+            <Text className="text-white font-bold text-lg">
+              {loading ? "Saving..." : "Update Details"}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

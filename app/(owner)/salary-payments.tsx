@@ -86,12 +86,12 @@ export default function SalaryPaymentsScreen() {
               <View style={styles.row}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <TabBarIcon name="cash-outline" color="#64748b" size={15} />
-                  <Text style={[styles.label, { marginLeft: 4 }]}>
-                    Amount
-                  </Text>
+                  <Text style={[styles.label, { marginLeft: 4 }]}>Amount</Text>
                 </View>
                 <Text style={styles.amount}>
-                  {formatCurrency(Number(item.paidAmount ?? item.totalSalary ?? 0))}
+                  {formatCurrency(
+                    Number(item.paidAmount ?? item.totalSalary ?? 0),
+                  )}
                 </Text>
               </View>
 

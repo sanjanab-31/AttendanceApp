@@ -4,12 +4,7 @@ import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import { useRouter } from "expo-router";
 import React from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OwnerDashboard() {

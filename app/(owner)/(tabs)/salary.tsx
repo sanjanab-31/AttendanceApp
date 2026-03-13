@@ -1,17 +1,17 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -35,7 +35,15 @@ const toDayStart = (value: Date) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate(), 0, 0, 0, 0);
 
 const toDayEnd = (value: Date) =>
-  new Date(value.getFullYear(), value.getMonth(), value.getDate(), 23, 59, 59, 999);
+  new Date(
+    value.getFullYear(),
+    value.getMonth(),
+    value.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
 
 const toDateKey = (value: Date) => {
   const year = value.getFullYear();
@@ -45,7 +53,11 @@ const toDateKey = (value: Date) => {
 };
 
 const formatDateLabel = (value: Date) =>
-  value.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  value.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
 const toNumber = (value: any) => {
   const parsed = Number(value);
@@ -58,7 +70,8 @@ const isWithinRange = (target: Date, start: Date, end: Date) => {
 };
 
 const rangesOverlap = (left: DateRange, right: DateRange) =>
-  left.from.getTime() <= right.to.getTime() && right.from.getTime() <= left.to.getTime();
+  left.from.getTime() <= right.to.getTime() &&
+  right.from.getTime() <= left.to.getTime();
 
 const mergeRanges = (ranges: DateRange[]) => {
   const sortedRanges = [...ranges]
@@ -93,8 +106,14 @@ const subtractRanges = (baseRange: DateRange, blockedRanges: DateRange[]) => {
   const endTime = baseRange.to.getTime();
 
   for (const blockedRange of blockedRanges) {
-    const blockedStart = Math.max(blockedRange.from.getTime(), baseRange.from.getTime());
-    const blockedEnd = Math.min(blockedRange.to.getTime(), baseRange.to.getTime());
+    const blockedStart = Math.max(
+      blockedRange.from.getTime(),
+      baseRange.from.getTime(),
+    );
+    const blockedEnd = Math.min(
+      blockedRange.to.getTime(),
+      baseRange.to.getTime(),
+    );
 
     if (blockedEnd < cursor || blockedStart > endTime) {
       continue;
@@ -115,13 +134,20 @@ const subtractRanges = (baseRange: DateRange, blockedRanges: DateRange[]) => {
     resultRanges.push({ from: new Date(cursor), to: new Date(endTime) });
   }
 
-  return resultRanges.filter((range) => range.from.getTime() <= range.to.getTime());
+  return resultRanges.filter(
+    (range) => range.from.getTime() <= range.to.getTime(),
+  );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc" },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 14 },
-  title: { fontSize: 25, fontWeight: "700", color: "#0f172a", marginBottom: 12 },
+  title: {
+    fontSize: 25,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 12,
+  },
   sectionLabel: {
     color: "#64748b",
     fontSize: 12,
@@ -163,7 +189,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
   },
   dateGap: { width: 8 },
-  dateLabel: { color: "#64748b", fontSize: 11, fontWeight: "600", marginBottom: 4 },
+  dateLabel: {
+    color: "#64748b",
+    fontSize: 11,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
   dateText: { color: "#0f172a", fontSize: 12, fontWeight: "600" },
   chipRow: { maxHeight: 46, marginBottom: 10 },
   chip: {
@@ -197,7 +228,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   summaryName: { color: "#0f172a", fontSize: 18, fontWeight: "700" },
-  summaryPeriod: { color: "#64748b", marginTop: 2, marginBottom: 10, fontSize: 12 },
+  summaryPeriod: {
+    color: "#64748b",
+    marginTop: 2,
+    marginBottom: 10,
+    fontSize: 12,
+  },
   block: {
     backgroundColor: "#f8fafc",
     borderWidth: 1,
@@ -207,8 +243,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   blockHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  blockTitle: { marginLeft: 6, color: "#0f172a", fontSize: 13, fontWeight: "700" },
-  kv: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+  blockTitle: {
+    marginLeft: 6,
+    color: "#0f172a",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  kv: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   kvLabel: { color: "#64748b", fontSize: 12 },
   kvValue: { color: "#1e293b", fontSize: 12, fontWeight: "600" },
   totalBlock: { backgroundColor: "#ecfdf5", borderColor: "#a7f3d0" },
@@ -247,12 +292,15 @@ const styles = StyleSheet.create({
 });
 
 export default function SalarySummary() {
-  const { employees, attendance, bonuses, salaryPayments, markSalaryPaid } = useData();
+  const { employees, attendance, bonuses, salaryPayments, markSalaryPaid } =
+    useData();
   const router = useRouter();
 
   const [periodType, setPeriodType] = useState<PeriodType>("monthly");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("all");
-  const [customFromDate, setCustomFromDate] = useState(() => toDayStart(new Date()));
+  const [customFromDate, setCustomFromDate] = useState(() =>
+    toDayStart(new Date()),
+  );
   const [customToDate, setCustomToDate] = useState(() => toDayEnd(new Date()));
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
@@ -266,7 +314,8 @@ export default function SalarySummary() {
   }, [employees, selectedEmployeeId]);
 
   const selectedEmployee =
-    employees.find((employee: any) => employee.id === selectedEmployeeId) || null;
+    employees.find((employee: any) => employee.id === selectedEmployeeId) ||
+    null;
 
   const selectedRange = useMemo(() => {
     const today = new Date();
@@ -281,7 +330,15 @@ export default function SalarySummary() {
     }
 
     if (periodType === "monthly") {
-      const start = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0);
+      const start = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0,
+      );
       const end = toDayEnd(today);
       return { from: start, to: end };
     }
@@ -308,7 +365,10 @@ export default function SalarySummary() {
     const ranges = salaryPayments
       .filter((payment: any) => {
         const status = String(payment.paymentStatus || "").toLowerCase();
-        return payment.employeeId === selectedEmployee.employeeId && status === "paid";
+        return (
+          payment.employeeId === selectedEmployee.employeeId &&
+          status === "paid"
+        );
       })
       .map((payment: any) => {
         const fromDate = parseDate(payment.fromDate);
@@ -331,7 +391,9 @@ export default function SalarySummary() {
 
   const overlappingPaidRanges =
     selectedRange && selectedEmployee
-      ? employeePaidRanges.filter((range) => rangesOverlap(selectedRange, range))
+      ? employeePaidRanges.filter((range) =>
+          rangesOverlap(selectedRange, range),
+        )
       : [];
 
   const unpaidSegments =
@@ -345,13 +407,17 @@ export default function SalarySummary() {
     const segmentAttendance = attendance.filter((record: any) => {
       if (!selectedEmployeeKeys.includes(record.employeeId)) return false;
       const recordDate = parseDate(record.date);
-      return recordDate ? isWithinRange(recordDate, segment.from, segment.to) : false;
+      return recordDate
+        ? isWithinRange(recordDate, segment.from, segment.to)
+        : false;
     });
 
     const segmentBonuses = bonuses.filter((bonus: any) => {
       if (!selectedEmployeeKeys.includes(bonus.employeeId)) return false;
       const bonusDate = parseDate(bonus.toDate);
-      return bonusDate ? isWithinRange(bonusDate, segment.from, segment.to) : false;
+      return bonusDate
+        ? isWithinRange(bonusDate, segment.from, segment.to)
+        : false;
     });
 
     const shiftHours = segmentAttendance.reduce(
@@ -388,14 +454,33 @@ export default function SalarySummary() {
     };
   });
 
-  const totalShiftHours = segmentSummaries.reduce((acc, row) => acc + row.shiftHours, 0);
-  const totalOTHours = segmentSummaries.reduce((acc, row) => acc + row.otHours, 0);
-  const totalShiftSalary = segmentSummaries.reduce((acc, row) => acc + row.shiftSalary, 0);
-  const totalOTSalary = segmentSummaries.reduce((acc, row) => acc + row.otSalary, 0);
-  const totalBonus = segmentSummaries.reduce((acc, row) => acc + row.bonusAmount, 0);
-  const totalNetSalary = segmentSummaries.reduce((acc, row) => acc + row.totalSalary, 0);
+  const totalShiftHours = segmentSummaries.reduce(
+    (acc, row) => acc + row.shiftHours,
+    0,
+  );
+  const totalOTHours = segmentSummaries.reduce(
+    (acc, row) => acc + row.otHours,
+    0,
+  );
+  const totalShiftSalary = segmentSummaries.reduce(
+    (acc, row) => acc + row.shiftSalary,
+    0,
+  );
+  const totalOTSalary = segmentSummaries.reduce(
+    (acc, row) => acc + row.otSalary,
+    0,
+  );
+  const totalBonus = segmentSummaries.reduce(
+    (acc, row) => acc + row.bonusAmount,
+    0,
+  );
+  const totalNetSalary = segmentSummaries.reduce(
+    (acc, row) => acc + row.totalSalary,
+    0,
+  );
 
-  const isFullyPaid = !!selectedRange && !!selectedEmployee && unpaidSegments.length === 0;
+  const isFullyPaid =
+    !!selectedRange && !!selectedEmployee && unpaidSegments.length === 0;
 
   const latestPaymentDate = useMemo(() => {
     if (!selectedEmployee?.employeeId || !selectedRange) return null;
@@ -424,7 +509,9 @@ export default function SalarySummary() {
   }, [salaryPayments, selectedEmployee, selectedRange]);
 
   const selectedEmployeeName =
-    selectedEmployeeId === "all" ? "All Employees" : selectedEmployee?.name || "Employee";
+    selectedEmployeeId === "all"
+      ? "All Employees"
+      : selectedEmployee?.name || "Employee";
 
   const warningMessage =
     overlappingPaidRanges.length > 0
@@ -438,23 +525,35 @@ export default function SalarySummary() {
     }
 
     if (!selectedEmployee || selectedEmployeeId === "all") {
-      Alert.alert("Select employee", "Choose an employee before marking salary as paid.");
+      Alert.alert(
+        "Select employee",
+        "Choose an employee before marking salary as paid.",
+      );
       return;
     }
 
     if (duplicateExactRange) {
-      Alert.alert("Duplicate period", "Salary for this exact date range is already marked as paid.");
+      Alert.alert(
+        "Duplicate period",
+        "Salary for this exact date range is already marked as paid.",
+      );
       return;
     }
 
     if (unpaidSegments.length === 0) {
-      Alert.alert("Already paid", "Salary for this entire period is already paid.");
+      Alert.alert(
+        "Already paid",
+        "Salary for this entire period is already paid.",
+      );
       return;
     }
 
     const payableRows = segmentSummaries.filter((row) => row.totalSalary > 0);
     if (!payableRows.length) {
-      Alert.alert("No payable salary", "No unpaid salary amount found for the selected period.");
+      Alert.alert(
+        "No payable salary",
+        "No unpaid salary amount found for the selected period.",
+      );
       return;
     }
 
@@ -473,7 +572,10 @@ export default function SalarySummary() {
         });
       }
 
-      Alert.alert("Success", "Salary marked as paid for remaining unpaid period.");
+      Alert.alert(
+        "Success",
+        "Salary marked as paid for remaining unpaid period.",
+      );
     } catch (error: any) {
       Alert.alert("Error", error?.message || "Unable to mark salary as paid.");
     } finally {
@@ -499,9 +601,17 @@ export default function SalarySummary() {
                 <Pressable
                   key={periodOption.key}
                   onPress={() => setPeriodType(periodOption.key as PeriodType)}
-                  style={[styles.segmentButton, active ? styles.segmentActive : null]}
+                  style={[
+                    styles.segmentButton,
+                    active ? styles.segmentActive : null,
+                  ]}
                 >
-                  <Text style={[styles.segmentText, active ? styles.segmentTextActive : null]}>
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      active ? styles.segmentTextActive : null,
+                    ]}
+                  >
                     {periodOption.label}
                   </Text>
                 </Pressable>
@@ -511,26 +621,48 @@ export default function SalarySummary() {
 
           {periodType === "custom" ? (
             <View style={styles.dateRow}>
-              <Pressable style={styles.dateBox} onPress={() => setShowFromPicker(true)}>
+              <Pressable
+                style={styles.dateBox}
+                onPress={() => setShowFromPicker(true)}
+              >
                 <Text style={styles.dateLabel}>From Date</Text>
-                <Text style={styles.dateText}>{formatDateLabel(customFromDate)}</Text>
+                <Text style={styles.dateText}>
+                  {formatDateLabel(customFromDate)}
+                </Text>
               </Pressable>
               <View style={styles.dateGap} />
-              <Pressable style={styles.dateBox} onPress={() => setShowToPicker(true)}>
+              <Pressable
+                style={styles.dateBox}
+                onPress={() => setShowToPicker(true)}
+              >
                 <Text style={styles.dateLabel}>To Date</Text>
-                <Text style={styles.dateText}>{formatDateLabel(customToDate)}</Text>
+                <Text style={styles.dateText}>
+                  {formatDateLabel(customToDate)}
+                </Text>
               </Pressable>
             </View>
           ) : null}
         </View>
 
         <Text style={styles.sectionLabel}>Employee Filter</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipRow}
+        >
           <Pressable
             onPress={() => setSelectedEmployeeId("all")}
-            style={[styles.chip, selectedEmployeeId === "all" ? styles.chipActive : null]}
+            style={[
+              styles.chip,
+              selectedEmployeeId === "all" ? styles.chipActive : null,
+            ]}
           >
-            <Text style={[styles.chipText, selectedEmployeeId === "all" ? styles.chipTextActive : null]}>
+            <Text
+              style={[
+                styles.chipText,
+                selectedEmployeeId === "all" ? styles.chipTextActive : null,
+              ]}
+            >
               All Employees
             </Text>
           </Pressable>
@@ -543,7 +675,12 @@ export default function SalarySummary() {
                 onPress={() => setSelectedEmployeeId(employee.id)}
                 style={[styles.chip, active ? styles.chipActive : null]}
               >
-                <Text style={[styles.chipText, active ? styles.chipTextActive : null]}>
+                <Text
+                  style={[
+                    styles.chipText,
+                    active ? styles.chipTextActive : null,
+                  ]}
+                >
                   {employee.name}
                 </Text>
               </Pressable>
@@ -557,7 +694,10 @@ export default function SalarySummary() {
           </View>
         ) : null}
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
           <View style={styles.summaryCard}>
             <Text style={styles.summaryName}>{selectedEmployeeName}</Text>
             <Text style={styles.summaryPeriod}>{periodLabel}</Text>
@@ -584,11 +724,15 @@ export default function SalarySummary() {
               </View>
               <View style={styles.kv}>
                 <Text style={styles.kvLabel}>Shift Salary</Text>
-                <Text style={styles.kvValue}>{formatCurrency(totalShiftSalary)}</Text>
+                <Text style={styles.kvValue}>
+                  {formatCurrency(totalShiftSalary)}
+                </Text>
               </View>
               <View style={styles.kv}>
                 <Text style={styles.kvLabel}>OT Salary</Text>
-                <Text style={styles.kvValue}>{formatCurrency(totalOTSalary)}</Text>
+                <Text style={styles.kvValue}>
+                  {formatCurrency(totalOTSalary)}
+                </Text>
               </View>
               <View style={styles.kv}>
                 <Text style={styles.kvLabel}>Bonus</Text>
@@ -599,16 +743,24 @@ export default function SalarySummary() {
             <View style={[styles.block, styles.totalBlock]}>
               <View style={styles.blockHeader}>
                 <TabBarIcon name="cash-outline" color="#065f46" size={18} />
-                <Text style={[styles.blockTitle, { color: "#065f46" }]}>Total Net Salary</Text>
+                <Text style={[styles.blockTitle, { color: "#065f46" }]}>
+                  Total Net Salary
+                </Text>
               </View>
-              <Text style={styles.totalValue}>{formatCurrency(totalNetSalary)}</Text>
+              <Text style={styles.totalValue}>
+                {formatCurrency(totalNetSalary)}
+              </Text>
             </View>
           </View>
 
           <View style={styles.statusCard}>
             <View style={styles.statusHeader}>
               <TabBarIcon
-                name={isFullyPaid ? "checkmark-circle-outline" : "alert-circle-outline"}
+                name={
+                  isFullyPaid
+                    ? "checkmark-circle-outline"
+                    : "alert-circle-outline"
+                }
                 color={isFullyPaid ? "#059669" : "#ea580c"}
                 size={18}
               />
@@ -616,7 +768,9 @@ export default function SalarySummary() {
             </View>
 
             {isFullyPaid && latestPaymentDate ? (
-              <Text style={styles.statusPaid}>Paid on {formatDateLabel(latestPaymentDate)}</Text>
+              <Text style={styles.statusPaid}>
+                Paid on {formatDateLabel(latestPaymentDate)}
+              </Text>
             ) : (
               <Text style={styles.statusUnpaid}>Unpaid</Text>
             )}
@@ -633,7 +787,11 @@ export default function SalarySummary() {
             ]}
           >
             <Text style={styles.primaryText}>
-              {isFullyPaid ? "Already Paid" : saving ? "Saving..." : "Mark as Paid"}
+              {isFullyPaid
+                ? "Already Paid"
+                : saving
+                  ? "Saving..."
+                  : "Mark as Paid"}
             </Text>
           </Pressable>
 

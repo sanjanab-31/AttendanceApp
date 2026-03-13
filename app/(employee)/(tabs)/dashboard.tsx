@@ -3,11 +3,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import React from "react";
-import {
-    ScrollView,
-    Text,
-    View
-} from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EmployeeDashboard() {
@@ -128,12 +124,10 @@ export default function EmployeeDashboard() {
                 <View className="flex-1 pr-2">
                   <Text className="font-semibold text-gray-900 text-sm">
                     {item.date?.toDate
-                      ? item.date
-                          .toDate()
-                          .toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                          })
+                      ? item.date.toDate().toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })
                       : "N/A"}
                   </Text>
                   <Text className="text-gray-500 text-xs">

@@ -1,7 +1,7 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { firebaseConfig } from "@/src/config/firebase";
-import { useToast } from "@/src/context/ToastContext";
 import { useData } from "@/src/context/DataContext";
+import { useToast } from "@/src/context/ToastContext";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { deleteApp, initializeApp } from "firebase/app";
 import {
@@ -207,13 +207,19 @@ export default function AddEmployee() {
     } catch (error: any) {
       const code = error?.code || "";
       if (code === "auth/email-already-in-use") {
-        showToast("This email is already registered in Firebase Auth.", "error");
+        showToast(
+          "This email is already registered in Firebase Auth.",
+          "error",
+        );
       } else if (code === "auth/invalid-email") {
         showToast("Please enter a valid employee email.", "error");
       } else if (code === "auth/weak-password") {
         showToast("Password must be at least 6 characters.", "error");
       } else {
-        showToast(error?.message || "Unable to create employee account.", "error");
+        showToast(
+          error?.message || "Unable to create employee account.",
+          "error",
+        );
       }
     } finally {
       if (tempApp) {
