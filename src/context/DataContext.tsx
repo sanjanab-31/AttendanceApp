@@ -258,10 +258,56 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const markSalaryPaid = async (data: any) => {
+    const fromDate = new Date(data.fromDate);
+    const toDate = new Date(data.toDate);
+
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      throw new Error("Invalid salary payment date range");
+    }
+
+    if (fromDate.getTime() > toDate.getTime()) {
+      throw new Error("From date cannot be after To date");
+    }
+
+    const paymentSnapshot = await getDocs(
+      query(
+        collection(db, "salaryPayments"),
+        where("employeeId", "==", data.employeeId),
+      ),
+    );
+
+    const hasOverlap = paymentSnapshot.docs.some((paymentDoc) => {
+      const payment = paymentDoc.data();
+      const status = String(payment.paymentStatus || "").toLowerCase();
+      if (status !== "paid") return false;
+
+      const existingFrom =
+        payment.fromDate?.toDate?.() || new Date(payment.fromDate);
+      const existingTo = payment.toDate?.toDate?.() || new Date(payment.toDate);
+
+      if (
+        Number.isNaN(existingFrom?.getTime?.()) ||
+        Number.isNaN(existingTo?.getTime?.())
+      ) {
+        return false;
+      }
+
+      return (
+        existingFrom.getTime() <= toDate.getTime() &&
+        fromDate.getTime() <= existingTo.getTime()
+      );
+    });
+
+    if (hasOverlap) {
+      throw new Error(
+        "Salary payment for this period overlaps with an already paid record.",
+      );
+    }
+
     await addDoc(collection(db, "salaryPayments"), {
       ...data,
-      fromDate: Timestamp.fromDate(new Date(data.fromDate)),
-      toDate: Timestamp.fromDate(new Date(data.toDate)),
+      fromDate: Timestamp.fromDate(fromDate),
+      toDate: Timestamp.fromDate(toDate),
       paymentDate: Timestamp.now(),
       createdAt: Timestamp.now(),
     });

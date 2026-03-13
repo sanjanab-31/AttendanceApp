@@ -1,11 +1,12 @@
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useData } from "@/src/context/DataContext";
+import { useToast } from "@/src/context/ToastContext";
 import { formatCurrency } from "@/src/utils/salary";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    Alert,
     Platform,
     Pressable,
     ScrollView,
@@ -196,16 +197,17 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dateText: { color: "#0f172a", fontSize: 12, fontWeight: "600" },
-  chipRow: { maxHeight: 46, marginBottom: 10 },
+  chipRow: { minHeight: 54, marginBottom: 10 },
   chip: {
     marginRight: 8,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: "#cbd5e1",
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     backgroundColor: "#ffffff",
-    minWidth: 74,
+    minHeight: 42,
+    justifyContent: "center",
   },
   chipActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
   chipText: { color: "#334155", fontWeight: "600", fontSize: 12 },
@@ -294,6 +296,7 @@ const styles = StyleSheet.create({
 export default function SalarySummary() {
   const { employees, attendance, bonuses, salaryPayments, markSalaryPaid } =
     useData();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const [periodType, setPeriodType] = useState<PeriodType>("monthly");
@@ -304,6 +307,7 @@ export default function SalarySummary() {
   const [customToDate, setCustomToDate] = useState(() => toDayEnd(new Date()));
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
+  const [confirmPaymentVisible, setConfirmPaymentVisible] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -520,42 +524,41 @@ export default function SalarySummary() {
 
   const handleMarkAsPaid = async () => {
     if (!selectedRange) {
-      Alert.alert("Invalid date range", "Please choose a valid period.");
+      showToast("Please choose a valid salary period.", "error");
       return;
     }
 
     if (!selectedEmployee || selectedEmployeeId === "all") {
-      Alert.alert(
-        "Select employee",
-        "Choose an employee before marking salary as paid.",
-      );
+      showToast("Choose an employee before marking salary as paid.", "error");
       return;
     }
 
     if (duplicateExactRange) {
-      Alert.alert(
-        "Duplicate period",
-        "Salary for this exact date range is already marked as paid.",
-      );
+      showToast("Salary for this exact date range is already paid.", "error");
       return;
     }
 
     if (unpaidSegments.length === 0) {
-      Alert.alert(
-        "Already paid",
-        "Salary for this entire period is already paid.",
-      );
+      showToast("Salary for this entire period is already paid.", "error");
       return;
     }
 
     const payableRows = segmentSummaries.filter((row) => row.totalSalary > 0);
     if (!payableRows.length) {
-      Alert.alert(
-        "No payable salary",
-        "No unpaid salary amount found for the selected period.",
-      );
+      showToast("No unpaid salary amount found for selected period.", "error");
       return;
     }
+
+    setConfirmPaymentVisible(true);
+  };
+
+  const confirmMarkAsPaid = async () => {
+    if (!selectedEmployee || !selectedRange) {
+      setConfirmPaymentVisible(false);
+      return;
+    }
+
+    const payableRows = segmentSummaries.filter((row) => row.totalSalary > 0);
 
     setSaving(true);
     try {
@@ -572,12 +575,10 @@ export default function SalarySummary() {
         });
       }
 
-      Alert.alert(
-        "Success",
-        "Salary marked as paid for remaining unpaid period.",
-      );
+      showToast("Salary marked as paid successfully", "success");
+      setConfirmPaymentVisible(false);
     } catch (error: any) {
-      Alert.alert("Error", error?.message || "Unable to mark salary as paid.");
+      showToast(error?.message || "Unable to mark salary as paid.", "error");
     } finally {
       setSaving(false);
     }
@@ -829,6 +830,19 @@ export default function SalarySummary() {
           }}
         />
       ) : null}
+
+      <ConfirmDialog
+        visible={confirmPaymentVisible}
+        title="Confirm Salary Payment"
+        message="Are you sure you want to mark this salary period as paid?"
+        confirmText="Confirm"
+        variant="update"
+        loading={saving}
+        onCancel={() => {
+          if (!saving) setConfirmPaymentVisible(false);
+        }}
+        onConfirm={confirmMarkAsPaid}
+      />
     </SafeAreaView>
   );
 }

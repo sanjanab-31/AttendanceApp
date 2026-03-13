@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-10)).current;
+  const translateY = useRef(new Animated.Value(18)).current;
 
   const [toast, setToast] = useState<ToastState>({
     visible: false,
@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         useNativeDriver: true,
       }),
       Animated.timing(translateY, {
-        toValue: -10,
+        toValue: 18,
         duration: 180,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
@@ -71,7 +71,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       setToast({ visible: true, message, type });
       opacity.setValue(0);
-      translateY.setValue(-10);
+      translateY.setValue(18);
 
       Animated.parallel([
         Animated.timing(opacity, {
@@ -119,7 +119,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             style={[
               styles.toast,
               {
-                top: insets.top + 12,
+                bottom: insets.bottom + 14,
+                alignSelf: "center",
                 backgroundColor: isSuccess ? "#065f46" : "#b91c1c",
                 opacity,
                 transform: [{ translateY }],
@@ -163,8 +164,8 @@ const styles = StyleSheet.create({
   },
   toast: {
     position: "absolute",
-    right: 12,
-    maxWidth: "88%",
+    width: "92%",
+    maxWidth: 520,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,

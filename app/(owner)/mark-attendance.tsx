@@ -1,9 +1,14 @@
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useData } from "@/src/context/DataContext";
+import { useToast } from "@/src/context/ToastContext";
 import { calculateSalaryBreakdown, formatCurrency } from "@/src/utils/salary";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     Alert,
+    Platform,
+    Pressable,
     ScrollView,
     Text,
     TextInput,
@@ -27,6 +32,7 @@ const getDateKey = (value: any) => {
 
 export default function MarkAttendance() {
   const { employees, attendance, markAttendance } = useData();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
@@ -35,6 +41,8 @@ export default function MarkAttendance() {
   const [otHours, setOtHours] = useState("0");
   const [remarks, setRemarks] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [confirmUpdateVisible, setConfirmUpdateVisible] = useState(false);
 
   const selectedEmployee = employees.find(
     (e: any) => e.id === selectedEmployeeId,
@@ -85,6 +93,20 @@ export default function MarkAttendance() {
       return;
     }
 
+    if (isUpdateMode) {
+      setConfirmUpdateVisible(true);
+      return;
+    }
+
+    await saveAttendance();
+  };
+
+  const saveAttendance = async () => {
+    if (!selectedEmployee) {
+      showToast("Please select an employee.", "error");
+      return;
+    }
+
     setLoading(true);
     try {
       if (!salaryPreview) return;
@@ -101,15 +123,15 @@ export default function MarkAttendance() {
         totalSalary: salaryPreview.totalSalary,
       });
 
-      Alert.alert(
-        "Success",
+      showToast(
         result === "updated"
           ? "Attendance updated successfully"
           : "Attendance marked successfully",
-        [{ text: "OK", onPress: () => router.back() }],
+        "success",
       );
+      router.back();
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      showToast(error?.message || "Unable to save attendance.", "error");
     } finally {
       setLoading(false);
     }
@@ -143,12 +165,12 @@ export default function MarkAttendance() {
         {/* Date Selection */}
         <View className="mb-4">
           <Text className="text-gray-600 mb-2 font-medium">Date</Text>
-          <TextInput
-            className="bg-white border border-gray-200 p-4 rounded-2xl text-gray-800 shadow-sm"
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-          />
+          <Pressable
+            className="bg-white border border-gray-200 p-4 rounded-2xl"
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text className="text-gray-800">{date}</Text>
+          </Pressable>
         </View>
 
         {isUpdateMode ? (
@@ -248,6 +270,35 @@ export default function MarkAttendance() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {showDatePicker ? (
+        <DateTimePicker
+          value={new Date(`${date}T00:00:00`)}
+          mode="date"
+          display={Platform.OS === "ios" ? "inline" : "default"}
+          onChange={(_, selectedDate) => {
+            if (Platform.OS === "android") setShowDatePicker(false);
+            if (!selectedDate) return;
+            setDate(getDateKey(selectedDate));
+          }}
+        />
+      ) : null}
+
+      <ConfirmDialog
+        visible={confirmUpdateVisible}
+        title="Confirm Update"
+        message="Are you sure you want to update this attendance record?"
+        confirmText="Update"
+        variant="update"
+        loading={loading}
+        onCancel={() => {
+          if (!loading) setConfirmUpdateVisible(false);
+        }}
+        onConfirm={async () => {
+          setConfirmUpdateVisible(false);
+          await saveAttendance();
+        }}
+      />
     </SafeAreaView>
   );
 }
