@@ -4,11 +4,11 @@ import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import React from "react";
 import {
-    SafeAreaView,
     ScrollView,
     Text,
     View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EmployeeDashboard() {
   const { userData } = useAuth();
@@ -61,7 +61,7 @@ export default function EmployeeDashboard() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-blue-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-blue-50">
       <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
         <View className="bg-white rounded-3xl p-5 border border-blue-100 mb-4">
           <Text className="text-blue-500 text-xs">EMPLOYEE PORTAL</Text>

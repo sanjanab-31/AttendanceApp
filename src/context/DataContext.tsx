@@ -3,7 +3,7 @@ import {
     collection,
     deleteDoc,
     doc,
-  getDocs,
+    getDocs,
     onSnapshot,
     orderBy,
     query,
@@ -22,12 +22,14 @@ interface DataContextType {
   employees: any[];
   attendance: any[];
   bonuses: any[];
+  salaryPayments: any[];
   loading: boolean;
   addEmployee: (data: any) => Promise<void>;
   updateEmployee: (id: string, data: any) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
   markAttendance: (data: any) => Promise<AttendanceSaveResult>;
   addBonus: (data: any) => Promise<void>;
+  markSalaryPaid: (data: any) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -39,6 +41,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [employees, setEmployees] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [bonuses, setBonuses] = useState<any[]>([]);
+  const [salaryPayments, setSalaryPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const toMillis = (value: any) => {
@@ -66,7 +69,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     dateKey: string,
   ) => {
     const attendanceSnapshot = await getDocs(
-      query(collection(db, "attendance"), where("employeeId", "==", employeeId)),
+      query(
+        collection(db, "attendance"),
+        where("employeeId", "==", employeeId),
+      ),
     );
 
     return attendanceSnapshot.docs
@@ -86,6 +92,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       setEmployees([]);
       setAttendance([]);
       setBonuses([]);
+      setSalaryPayments([]);
       setLoading(false);
       return;
     }
@@ -159,10 +166,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       },
     );
 
+    const salaryPaymentsQuery = isAdmin
+      ? query(collection(db, "salaryPayments"), orderBy("paymentDate", "desc"))
+      : query(
+          collection(db, "salaryPayments"),
+          where("employeeId", "==", userData?.employeeId || ""),
+        );
+
+    const unsubSalaryPayments = onSnapshot(
+      salaryPaymentsQuery,
+      (snapshot) => {
+        const rows = snapshot.docs.map((paymentDoc) => ({
+          id: paymentDoc.id,
+          ...paymentDoc.data(),
+        }));
+        if (isAdmin) {
+          setSalaryPayments(rows);
+        } else {
+          rows.sort(
+            (a: any, b: any) =>
+              toMillis(b.paymentDate) - toMillis(a.paymentDate),
+          );
+          setSalaryPayments(rows);
+        }
+        setLoading(false);
+      },
+      () => {
+        setSalaryPayments([]);
+        setLoading(false);
+      },
+    );
+
     return () => {
       unsubEmployees();
       unsubAttendance();
       unsubBonuses();
+      unsubSalaryPayments();
     };
   }, [user, isAdmin, userData]);
 
@@ -218,18 +257,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const markSalaryPaid = async (data: any) => {
+    await addDoc(collection(db, "salaryPayments"), {
+      ...data,
+      fromDate: Timestamp.fromDate(new Date(data.fromDate)),
+      toDate: Timestamp.fromDate(new Date(data.toDate)),
+      paymentDate: Timestamp.now(),
+      createdAt: Timestamp.now(),
+    });
+  };
+
   return (
     <DataContext.Provider
       value={{
         employees,
         attendance,
         bonuses,
+        salaryPayments,
         loading,
         addEmployee,
         updateEmployee,
         deleteEmployee,
         markAttendance,
         addBonus,
+        markSalaryPaid,
       }}
     >
       {children}

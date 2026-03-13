@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useData } from '@/src/context/DataContext';
 import { calculateTotalShiftHours, formatCurrency } from '@/src/utils/salary';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function BonusManagement() {
   const { employees, attendance, addBonus } = useData();
@@ -63,7 +64,7 @@ export default function BonusManagement() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <ScrollView className="px-6 pt-6" showsVerticalScrollIndicator={false}>
         <Text className="text-2xl font-bold text-gray-800 mb-6">Bonus Management</Text>
 

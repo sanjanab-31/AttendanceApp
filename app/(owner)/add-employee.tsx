@@ -1,4 +1,6 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { firebaseConfig } from "@/src/config/firebase";
+import { useToast } from "@/src/context/ToastContext";
 import { useData } from "@/src/context/DataContext";
 import { useRouter } from "expo-router";
 import { deleteApp, initializeApp } from "firebase/app";
@@ -12,13 +14,13 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type InputFieldProps = {
   label: string;
@@ -27,6 +29,7 @@ type InputFieldProps = {
   placeholder: string;
   keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
   secureTextEntry?: boolean;
+  maxLength?: number;
 };
 
 function InputField({
@@ -36,6 +39,7 @@ function InputField({
   placeholder,
   keyboardType = "default",
   secureTextEntry = false,
+  maxLength,
 }: InputFieldProps) {
   return (
     <View className="mb-4">
@@ -47,14 +51,30 @@ function InputField({
         placeholder={placeholder}
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
+        maxLength={maxLength}
       />
     </View>
   );
 }
 
+const toDateKey = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateFromKey = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return new Date();
+  const parsedDate = new Date(year, month - 1, day);
+  return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+};
+
 export default function AddEmployee() {
   const { addEmployee, employees } = useData();
   const router = useRouter();
+  const { showToast } = useToast();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\d{10}$/;
@@ -66,10 +86,11 @@ export default function AddEmployee() {
     email: "",
     password: "",
     hourlyRate: "",
-    joiningDate: new Date().toISOString().split("T")[0],
+    joiningDate: toDateKey(new Date()),
   });
 
   const [formData, setFormData] = useState(getInitialFormData());
+  const [showJoiningDatePicker, setShowJoiningDatePicker] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -182,26 +203,17 @@ export default function AddEmployee() {
 
       // Keep owner on this screen so multiple employees can be added quickly.
       setFormData(getInitialFormData());
-      Alert.alert(
-        "Success",
-        "Employee added successfully. You can add another employee.",
-      );
+      showToast("Employee added successfully!", "success");
     } catch (error: any) {
       const code = error?.code || "";
       if (code === "auth/email-already-in-use") {
-        Alert.alert(
-          "Email In Use",
-          "This email is already registered in Firebase Auth.",
-        );
+        showToast("This email is already registered in Firebase Auth.", "error");
       } else if (code === "auth/invalid-email") {
-        Alert.alert("Invalid Email", "Please enter a valid employee email.");
+        showToast("Please enter a valid employee email.", "error");
       } else if (code === "auth/weak-password") {
-        Alert.alert("Weak Password", "Password must be at least 6 characters.");
+        showToast("Password must be at least 6 characters.", "error");
       } else {
-        Alert.alert(
-          "Error",
-          error?.message || "Unable to create employee account.",
-        );
+        showToast(error?.message || "Unable to create employee account.", "error");
       }
     } finally {
       if (tempApp) {
@@ -217,7 +229,7 @@ export default function AddEmployee() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -246,7 +258,13 @@ export default function AddEmployee() {
             }
             placeholder="1234567890"
             keyboardType="phone-pad"
+            maxLength={10}
           />
+          {formData.phone.length > 0 && formData.phone.length !== 10 ? (
+            <Text className="text-red-500 text-xs -mt-2 mb-3">
+              Phone number must be exactly 10 digits.
+            </Text>
+          ) : null}
           <InputField
             label="Email Address"
             value={formData.email}
@@ -274,14 +292,36 @@ export default function AddEmployee() {
             placeholder="500"
             keyboardType="numeric"
           />
-          <InputField
-            label="Joining Date"
-            value={formData.joiningDate}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, joiningDate: text }))
-            }
-            placeholder="YYYY-MM-DD"
-          />
+          <View className="mb-4">
+            <Text className="text-gray-600 mb-2 font-medium">Joining Date</Text>
+            <TouchableOpacity
+              className="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm"
+              onPress={() => setShowJoiningDatePicker(true)}
+              activeOpacity={0.8}
+            >
+              <Text className="text-gray-800">{formData.joiningDate}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {showJoiningDatePicker ? (
+            <DateTimePicker
+              value={parseDateFromKey(formData.joiningDate)}
+              mode="date"
+              display={Platform.OS === "ios" ? "inline" : "default"}
+              onChange={(_, selectedDate) => {
+                if (Platform.OS === "android") {
+                  setShowJoiningDatePicker(false);
+                }
+
+                if (!selectedDate) return;
+
+                setFormData((prev) => ({
+                  ...prev,
+                  joiningDate: toDateKey(selectedDate),
+                }));
+              }}
+            />
+          ) : null}
 
           <TouchableOpacity
             className={`bg-blue-600 p-4 rounded-2xl mt-4 mb-10 items-center ${loading ? "opacity-70" : ""}`}

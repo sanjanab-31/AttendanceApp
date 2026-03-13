@@ -5,12 +5,12 @@ import { formatCurrency } from "@/src/utils/salary";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OwnerDashboard() {
   const { userData, logout } = useAuth();
@@ -100,7 +100,7 @@ export default function OwnerDashboard() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-blue-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-blue-50">
       <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
         <View className="bg-white rounded-3xl p-5 border border-blue-100 mb-4">
           <View className="flex-row justify-between items-center">

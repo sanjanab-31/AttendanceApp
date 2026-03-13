@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useData } from '@/src/context/DataContext';
 import { formatCurrency } from '@/src/utils/salary';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Reports() {
   const { employees, attendance, bonuses } = useData();
@@ -43,7 +44,7 @@ export default function Reports() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <ScrollView className="px-6 pt-6" showsVerticalScrollIndicator={false}>
         <Text className="text-2xl font-bold text-gray-800 mb-6">Business Reports</Text>
 

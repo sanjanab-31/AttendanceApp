@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyProfile() {
   const { userData, logout } = useAuth();
@@ -19,7 +20,7 @@ export default function MyProfile() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-white">
       <ScrollView className="px-6" showsVerticalScrollIndicator={false}>
         <View className="items-center mt-10 mb-10">
            <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-4">

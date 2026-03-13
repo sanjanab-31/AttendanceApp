@@ -101,7 +101,11 @@ export default function LoginScreen() {
         return;
       }
 
-      // Navigation is handled by the RootLayout effect on auth change
+      router.replace(
+        actualRole === "owner" || actualRole === "admin"
+          ? "/(owner)/(tabs)/dashboard"
+          : "/(employee)/(tabs)/dashboard",
+      );
     } catch (error: any) {
       Alert.alert("Login Failed", error.message);
     } finally {

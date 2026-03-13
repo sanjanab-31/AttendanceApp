@@ -1,33 +1,37 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '@/src/context/DataContext';
 import { useRouter } from 'expo-router';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { formatCurrency } from '@/src/utils/salary';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/src/context/ToastContext';
 
 export default function EmployeeManagement() {
   const { employees, deleteEmployee } = useData();
   const router = useRouter();
+  const { showToast } = useToast();
+  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   const handleDelete = (id: string, name: string) => {
-    Alert.alert(
-      'Delete Employee',
-      `Are you sure you want to delete ${name}? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteEmployee(id);
-            } catch (error: any) {
-              Alert.alert('Error', error.message);
-            }
-          }
-        }
-      ]
-    );
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeleting(true);
+    try {
+      await deleteEmployee(deleteTarget.id);
+      showToast('Employee deleted successfully!', 'success');
+      setDeleteTarget(null);
+    } catch (error: any) {
+      showToast(error?.message || 'Unable to delete employee.', 'error');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const renderEmployee = ({ item }: { item: any }) => (
@@ -61,7 +65,7 @@ export default function EmployeeManagement() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <View className="px-6 pt-6 pb-20">
         <View className="flex-row justify-between items-center mb-6">
           <Text className="text-2xl font-bold text-gray-800">Employees</Text>
@@ -87,6 +91,21 @@ export default function EmployeeManagement() {
           }
         />
       </View>
+
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this employee? This action cannot be undone."
+        confirmText="Delete"
+        variant="delete"
+        loading={deleting}
+        onCancel={() => {
+          if (!deleting) {
+            setDeleteTarget(null);
+          }
+        }}
+        onConfirm={confirmDelete}
+      />
     </SafeAreaView>
   );
 }

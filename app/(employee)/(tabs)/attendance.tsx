@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { useData } from '@/src/context/DataContext';
 import { formatCurrency } from '@/src/utils/salary';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyAttendance() {
   const { attendance } = useData();
@@ -45,7 +46,7 @@ export default function MyAttendance() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <View className="px-6 pt-6 flex-1">
         <Text className="text-2xl font-bold text-gray-800 mb-6">Attendance History</Text>
         

@@ -10,12 +10,7 @@ import {
     DefaultTheme,
     ThemeProvider,
 } from "@react-navigation/native";
-import {
-  Stack,
-  useRootNavigationState,
-  useRouter,
-  useSegments,
-} from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { Text, TextInput } from "react-native";
@@ -24,67 +19,34 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { DataProvider } from "../src/context/DataContext";
+import { ToastProvider } from "../src/context/ToastContext";
 
 import "./global.css";
 
 function RootLayoutNav() {
   console.log("--- RootLayout Loading ---");
   const { user, userData, loading, isAdmin } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-  const rootNavigationState = useRootNavigationState();
 
-  useEffect(() => {
-    if (loading || !rootNavigationState?.key || segments.length === 0) return;
+  if (loading) {
+    return null;
+  }
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inOwnerGroup = segments[0] === "(owner)";
-    const inEmployeeGroup = segments[0] === "(employee)";
-    const currentPath = `/${segments.join("/")}`;
+  const hasRole = Boolean(userData?.role);
 
-    const role = userData?.role;
-
-    let targetPath: string | null = null;
-
-    if (!user && !inAuthGroup) {
-      targetPath = "/(auth)/login";
-    }
-
-    if (user) {
-      // If profile has not been mapped to a role, keep user in auth flow.
-      if (!role) {
-        targetPath = "/(auth)/login";
-      } else if (inAuthGroup) {
-        // Redirect away from auth to the correct dashboard.
-        targetPath = isAdmin
-          ? "/(owner)/(tabs)/dashboard"
-          : "/(employee)/(tabs)/dashboard";
-      } else if (isAdmin && !inOwnerGroup) {
-        // Guard route groups by role so owner can never stay in employee portal.
-        targetPath = "/(owner)/(tabs)/dashboard";
-      } else if (!isAdmin && !inEmployeeGroup) {
-        // Guard route groups by role so employee can never stay in owner portal.
-        targetPath = "/(employee)/(tabs)/dashboard";
-      }
-    }
-
-    if (!targetPath || currentPath === targetPath) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      router.replace(targetPath as any);
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
-  }, [user, userData, loading, segments, isAdmin, rootNavigationState?.key, router]);
+  if (!user || !hasRole) {
+    return (
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      </Stack>
+    );
+  }
 
   return (
     <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(owner)" options={{ headerShown: false }} />
-      <Stack.Screen name="(employee)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+      <Stack.Screen
+        name={isAdmin ? "(owner)" : "(employee)"}
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
@@ -127,8 +89,10 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <RootLayoutNav />
-          <StatusBar style="auto" />
+          <ToastProvider>
+            <RootLayoutNav />
+            <StatusBar style="auto" />
+          </ToastProvider>
         </ThemeProvider>
       </DataProvider>
     </AuthProvider>

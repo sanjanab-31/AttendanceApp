@@ -45,7 +45,7 @@ export default function OwnerSignupScreen() {
       });
 
       Alert.alert("Success", "Owner account created successfully");
-      router.replace("/(owner)/(tabs)/dashboard");
+      router.push("/(owner)/(tabs)/dashboard");
     } catch (error: any) {
       Alert.alert(
         "Signup Failed",

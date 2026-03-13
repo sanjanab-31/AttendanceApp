@@ -1,7 +1,7 @@
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Tabs } from "expo-router";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 
 export default function OwnerTabLayout() {
   const renderIcon = (
@@ -58,21 +58,6 @@ export default function OwnerTabLayout() {
         },
         tabBarItemStyle: {
           paddingVertical: 10,
-        },
-        tabBarButton: (props) => {
-          const { onPress, onLongPress, style, children, accessibilityState } = props;
-          return (
-            <TouchableOpacity
-              style={style}
-              onPress={onPress}
-              onLongPress={onLongPress ?? undefined}
-              activeOpacity={0.9}
-              accessibilityRole="button"
-              accessibilityState={accessibilityState}
-            >
-              {children}
-            </TouchableOpacity>
-          );
         },
         headerShown: false,
       }}

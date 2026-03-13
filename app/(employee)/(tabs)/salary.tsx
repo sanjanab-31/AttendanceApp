@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { useData } from '@/src/context/DataContext';
 import { formatCurrency } from '@/src/utils/salary';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MySalary() {
   const { userData } = useAuth();
@@ -34,7 +35,7 @@ export default function MySalary() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
       <ScrollView className="px-6 pt-6" showsVerticalScrollIndicator={false}>
         <Text className="text-2xl font-bold text-gray-800 mb-6">Salary Breakdown</Text>
         <Text className="text-gray-500 mb-6">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</Text>
