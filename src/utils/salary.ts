@@ -34,5 +34,6 @@ export const calculateTotalOTHours = (attendanceRecords: any[]) => {
 };
 
 export const formatCurrency = (amount: number) => {
-  return `₹${amount.toLocaleString('en-IN')}`;
+  const safeAmount = Number.isFinite(amount) ? amount : 0;
+  return `₹${safeAmount.toLocaleString('en-IN')}`;
 };

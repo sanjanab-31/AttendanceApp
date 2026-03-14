@@ -5,22 +5,31 @@ import { useToast } from "@/src/context/ToastContext";
 import { formatCurrency } from "@/src/utils/salary";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type PeriodType = "weekly" | "monthly" | "custom";
 
 type DateRange = {
   from: Date;
   to: Date;
+};
+
+type SalaryRecordSummary = {
+  segment: DateRange;
+  shiftHours: number;
+  otHours: number;
+  shiftSalary: number;
+  otSalary: number;
+  bonusAmount: number;
+  totalSalary: number;
 };
 
 const parseDate = (value: any) => {
@@ -140,164 +149,12 @@ const subtractRanges = (baseRange: DateRange, blockedRanges: DateRange[]) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafc" },
-  content: { flex: 1, paddingHorizontal: 16, paddingTop: 14 },
-  title: {
-    fontSize: 25,
-    fontWeight: "700",
-    color: "#0f172a",
-    marginBottom: 12,
-  },
-  sectionLabel: {
-    color: "#64748b",
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  periodCard: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 14,
-    padding: 10,
-    marginBottom: 12,
-  },
-  segmented: {
-    flexDirection: "row",
-    backgroundColor: "#f1f5f9",
-    borderRadius: 10,
-    padding: 3,
-  },
-  segmentButton: {
-    flex: 1,
-    borderRadius: 8,
-    paddingVertical: 9,
-    alignItems: "center",
-  },
-  segmentActive: { backgroundColor: "#0f172a" },
-  segmentText: { fontSize: 12, fontWeight: "600", color: "#475569" },
-  segmentTextActive: { color: "#ffffff" },
-  dateRow: { flexDirection: "row", marginTop: 10 },
-  dateBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#f8fafc",
-  },
-  dateGap: { width: 8 },
-  dateLabel: {
-    color: "#64748b",
-    fontSize: 11,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  dateText: { color: "#0f172a", fontSize: 12, fontWeight: "600" },
-  chipRow: { minHeight: 54, marginBottom: 10 },
-  chip: {
-    marginRight: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: "#ffffff",
-    minHeight: 42,
-    justifyContent: "center",
-  },
-  chipActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chipText: { color: "#334155", fontWeight: "600", fontSize: 12 },
-  chipTextActive: { color: "#ffffff" },
-  warningBanner: {
-    backgroundColor: "#fff7ed",
-    borderWidth: 1,
-    borderColor: "#fed7aa",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-  },
-  warningText: { color: "#c2410c", fontSize: 12, fontWeight: "600" },
-  summaryCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    padding: 12,
-    marginBottom: 10,
-  },
-  summaryName: { color: "#0f172a", fontSize: 18, fontWeight: "700" },
-  summaryPeriod: {
-    color: "#64748b",
-    marginTop: 2,
-    marginBottom: 10,
-    fontSize: 12,
-  },
-  block: {
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
-  },
-  blockHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
-  blockTitle: {
-    marginLeft: 6,
-    color: "#0f172a",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  kv: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  kvLabel: { color: "#64748b", fontSize: 12 },
-  kvValue: { color: "#1e293b", fontSize: 12, fontWeight: "600" },
-  totalBlock: { backgroundColor: "#ecfdf5", borderColor: "#a7f3d0" },
-  totalValue: { color: "#059669", fontSize: 30, fontWeight: "800" },
-  statusCard: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 10,
-  },
-  statusHeader: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
-  statusTitle: { color: "#0f172a", fontWeight: "700", marginLeft: 6 },
-  statusPaid: { color: "#059669", fontWeight: "700" },
-  statusUnpaid: { color: "#ea580c", fontWeight: "700" },
-  primaryBtn: {
-    backgroundColor: "#0f766e",
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  primaryBtnDisabled: { opacity: 0.5 },
-  primaryText: { color: "#ffffff", fontWeight: "700" },
-  secondaryBtn: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  secondaryText: { color: "#334155", fontWeight: "700" },
-});
-
 export default function SalarySummary() {
   const { employees, attendance, bonuses, salaryPayments, markSalaryPaid } =
     useData();
   const { showToast } = useToast();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [periodType, setPeriodType] = useState<PeriodType>("monthly");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("all");
@@ -361,7 +218,7 @@ export default function SalarySummary() {
 
   const periodLabel = selectedRange
     ? `${formatDateLabel(selectedRange.from)} - ${formatDateLabel(selectedRange.to)}`
-    : "Select valid From and To dates";
+    : "Invalid Range Selected";
 
   const employeePaidRanges = useMemo(() => {
     if (!selectedEmployee?.employeeId) return [] as DateRange[];
@@ -407,56 +264,58 @@ export default function SalarySummary() {
         ? [selectedRange]
         : [];
 
-  const segmentSummaries = unpaidSegments.map((segment) => {
-    const segmentAttendance = attendance.filter((record: any) => {
-      if (!selectedEmployeeKeys.includes(record.employeeId)) return false;
-      const recordDate = parseDate(record.date);
-      return recordDate
-        ? isWithinRange(recordDate, segment.from, segment.to)
-        : false;
-    });
+  const segmentSummaries: SalaryRecordSummary[] = unpaidSegments.map(
+    (segment) => {
+      const segmentAttendance = attendance.filter((record: any) => {
+        if (!selectedEmployeeKeys.includes(record.employeeId)) return false;
+        const recordDate = parseDate(record.date);
+        return recordDate
+          ? isWithinRange(recordDate, segment.from, segment.to)
+          : false;
+      });
 
-    const segmentBonuses = bonuses.filter((bonus: any) => {
-      if (!selectedEmployeeKeys.includes(bonus.employeeId)) return false;
-      const bonusDate = parseDate(bonus.toDate);
-      return bonusDate
-        ? isWithinRange(bonusDate, segment.from, segment.to)
-        : false;
-    });
+      const segmentBonuses = bonuses.filter((bonus: any) => {
+        if (!selectedEmployeeKeys.includes(bonus.employeeId)) return false;
+        const bonusDate = parseDate(bonus.toDate);
+        return bonusDate
+          ? isWithinRange(bonusDate, segment.from, segment.to)
+          : false;
+      });
 
-    const shiftHours = segmentAttendance.reduce(
-      (acc: number, record: any) => acc + toNumber(record.shiftHours),
-      0,
-    );
-    const otHours = segmentAttendance.reduce(
-      (acc: number, record: any) => acc + toNumber(record.otHours),
-      0,
-    );
-    const shiftSalary = segmentAttendance.reduce(
-      (acc: number, record: any) => acc + toNumber(record.shiftSalary),
-      0,
-    );
-    const otSalary = segmentAttendance.reduce(
-      (acc: number, record: any) => acc + toNumber(record.otSalary),
-      0,
-    );
-    const bonusAmount = segmentBonuses.reduce(
-      (acc: number, bonus: any) => acc + toNumber(bonus.bonusAmount),
-      0,
-    );
+      const shiftHours = segmentAttendance.reduce(
+        (acc: number, record: any) => acc + toNumber(record.shiftHours),
+        0,
+      );
+      const otHours = segmentAttendance.reduce(
+        (acc: number, record: any) => acc + toNumber(record.otHours),
+        0,
+      );
+      const shiftSalary = segmentAttendance.reduce(
+        (acc: number, record: any) => acc + toNumber(record.shiftSalary),
+        0,
+      );
+      const otSalary = segmentAttendance.reduce(
+        (acc: number, record: any) => acc + toNumber(record.otSalary),
+        0,
+      );
+      const bonusAmount = segmentBonuses.reduce(
+        (acc: number, bonus: any) => acc + toNumber(bonus.bonusAmount),
+        0,
+      );
 
-    const totalSalary = shiftSalary + otSalary + bonusAmount;
+      const totalSalary = shiftSalary + otSalary + bonusAmount;
 
-    return {
-      segment,
-      shiftHours,
-      otHours,
-      shiftSalary,
-      otSalary,
-      bonusAmount,
-      totalSalary,
-    };
-  });
+      return {
+        segment,
+        shiftHours,
+        otHours,
+        shiftSalary,
+        otSalary,
+        bonusAmount,
+        totalSalary,
+      };
+    },
+  );
 
   const totalShiftHours = segmentSummaries.reduce(
     (acc, row) => acc + row.shiftHours,
@@ -514,38 +373,33 @@ export default function SalarySummary() {
 
   const selectedEmployeeName =
     selectedEmployeeId === "all"
-      ? "All Employees"
-      : selectedEmployee?.name || "Employee";
+      ? "Collective View"
+      : selectedEmployee?.name || "Member";
 
   const warningMessage =
     overlappingPaidRanges.length > 0
-      ? "Salary for part of this period has already been paid. Calculating only remaining unpaid dates."
+      ? "Partial payments detected. Showing remaining balance."
       : "";
 
   const handleMarkAsPaid = async () => {
     if (!selectedRange) {
-      showToast("Please choose a valid salary period.", "error");
+      showToast("Invalid period selection.", "error");
       return;
     }
 
     if (!selectedEmployee || selectedEmployeeId === "all") {
-      showToast("Choose an employee before marking salary as paid.", "error");
+      showToast("Select a specific employee to issue payout.", "error");
       return;
     }
 
     if (duplicateExactRange) {
-      showToast("Salary for this exact date range is already paid.", "error");
-      return;
-    }
-
-    if (unpaidSegments.length === 0) {
-      showToast("Salary for this entire period is already paid.", "error");
+      showToast("This range has already been settled.", "success");
       return;
     }
 
     const payableRows = segmentSummaries.filter((row) => row.totalSalary > 0);
     if (!payableRows.length) {
-      showToast("No unpaid salary amount found for selected period.", "error");
+      showToast("Zero balance for this period.", "success");
       return;
     }
 
@@ -575,274 +429,295 @@ export default function SalarySummary() {
         });
       }
 
-      showToast("Salary marked as paid successfully", "success");
+      showToast("Salary payout confirmed", "success");
       setConfirmPaymentVisible(false);
     } catch (error: any) {
-      showToast(error?.message || "Unable to mark salary as paid.", "error");
+      showToast(error?.message || "Failed to confirm payout.", "error");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <SafeAreaView edges={["top"]} style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Salary Summary</Text>
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      <StatusBar style="dark" />
+      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24 }}>
+        <Text style={{ fontSize: 30, fontWeight: "900", color: "#0f172a", marginBottom: 24 }}>
+          Payouts
+        </Text>
 
-        <View style={styles.periodCard}>
-          <Text style={styles.sectionLabel}>Salary Period</Text>
-          <View style={styles.segmented}>
+        <View style={{ backgroundColor: "white", padding: 20, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 24 }}>
+          <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>
+            Payout Cycle
+          </Text>
+          <View style={{ flexDirection: "row", backgroundColor: "#f8fafc", padding: 4, borderRadius: 16, marginBottom: 16 }}>
             {[
               { key: "weekly", label: "Weekly" },
               { key: "monthly", label: "Monthly" },
               { key: "custom", label: "Custom" },
-            ].map((periodOption) => {
-              const active = periodType === periodOption.key;
+            ].map((option) => {
+              const active = periodType === option.key;
               return (
-                <Pressable
-                  key={periodOption.key}
-                  onPress={() => setPeriodType(periodOption.key as PeriodType)}
-                  style={[
-                    styles.segmentButton,
-                    active ? styles.segmentActive : null,
-                  ]}
+                <TouchableOpacity
+                  key={option.key}
+                  onPress={() => setPeriodType(option.key as PeriodType)}
+                  style={[{ flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center" }, active ? { backgroundColor: "white", elevation: 2 } : {}]}
                 >
                   <Text
-                    style={[
-                      styles.segmentText,
-                      active ? styles.segmentTextActive : null,
-                    ]}
+                    style={{ fontSize: 13, fontWeight: "bold", color: active ? "#4f46e5" : "#64748b" }}
                   >
-                    {periodOption.label}
+                    {option.label}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               );
             })}
           </View>
 
-          {periodType === "custom" ? (
-            <View style={styles.dateRow}>
-              <Pressable
-                style={styles.dateBox}
+          {periodType === "custom" && (
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <TouchableOpacity
                 onPress={() => setShowFromPicker(true)}
+                style={{ flex: 1, backgroundColor: "#f8fafc", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", marginRight: 8 }}
               >
-                <Text style={styles.dateLabel}>From Date</Text>
-                <Text style={styles.dateText}>
+                <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>
+                  From
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>
                   {formatDateLabel(customFromDate)}
                 </Text>
-              </Pressable>
-              <View style={styles.dateGap} />
-              <Pressable
-                style={styles.dateBox}
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={() => setShowToPicker(true)}
+                style={{ flex: 1, backgroundColor: "#f8fafc", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", marginLeft: 8 }}
               >
-                <Text style={styles.dateLabel}>To Date</Text>
-                <Text style={styles.dateText}>
+                <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>
+                  To
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>
                   {formatDateLabel(customToDate)}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
-          ) : null}
+          )}
+
+          {showFromPicker && (
+            <DateTimePicker
+              value={customFromDate}
+              mode="date"
+              display="default"
+              onChange={(_event, date) => {
+                setShowFromPicker(false);
+                if (date) setCustomFromDate(toDayStart(date));
+              }}
+            />
+          )}
+          {showToPicker && (
+            <DateTimePicker
+              value={customToDate}
+              mode="date"
+              display="default"
+              onChange={(_event, date) => {
+                setShowToPicker(false);
+                if (date) setCustomToDate(toDayEnd(date));
+              }}
+            />
+          )}
         </View>
 
-        <Text style={styles.sectionLabel}>Employee Filter</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipRow}
-        >
-          <Pressable
-            onPress={() => setSelectedEmployeeId("all")}
-            style={[
-              styles.chip,
-              selectedEmployeeId === "all" ? styles.chipActive : null,
-            ]}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                selectedEmployeeId === "all" ? styles.chipTextActive : null,
-              ]}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ color: "#64748b", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, marginLeft: 4 }}> Member</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              onPress={() => setSelectedEmployeeId("all")}
+              style={{
+                marginRight: 10,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 16,
+                borderWidth: 1,
+                backgroundColor: selectedEmployeeId === "all" ? "#4f46e5" : "white",
+                borderColor: selectedEmployeeId === "all" ? "#4f46e5" : "#f1f5f9",
+                elevation: selectedEmployeeId === "all" ? 4 : 0
+              }}
             >
-              All Employees
-            </Text>
-          </Pressable>
-
-          {employees.map((employee: any) => {
-            const active = selectedEmployeeId === employee.id;
-            return (
-              <Pressable
-                key={employee.id}
-                onPress={() => setSelectedEmployeeId(employee.id)}
-                style={[styles.chip, active ? styles.chipActive : null]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    active ? styles.chipTextActive : null,
-                  ]}
+              <Text style={{ fontWeight: "bold", fontSize: 13, color: selectedEmployeeId === "all" ? "white" : "#475569" }}>
+                Everyone
+              </Text>
+            </TouchableOpacity>
+            {employees.map((employee: any) => {
+              const active = selectedEmployeeId === employee.id;
+              return (
+                <TouchableOpacity
+                  key={employee.id}
+                  onPress={() => setSelectedEmployeeId(employee.id)}
+                  style={{
+                    marginRight: 10,
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    backgroundColor: active ? "#4f46e5" : "white",
+                    borderColor: active ? "#4f46e5" : "#f1f5f9",
+                    elevation: active ? 4 : 0
+                  }}
                 >
-                  {employee.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+                  <Text style={{ fontWeight: "bold", fontSize: 13, color: active ? "white" : "#475569" }}>
+                    {employee.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {warningMessage ? (
-          <View style={styles.warningBanner}>
-            <Text style={styles.warningText}>{warningMessage}</Text>
+          <View style={{ backgroundColor: "#fffbeb", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "#fef3c7", marginBottom: 24, flexDirection: "row", alignItems: "center" }}>
+            <TabBarIcon name="alert-circle" color="#b45309" size={16} />
+            <Text style={{ color: "#b45309", fontSize: 12, fontWeight: "bold", marginLeft: 8, flex: 1 }}>
+              {warningMessage}
+            </Text>
           </View>
         ) : null}
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          style={{ flex: 1 }}
         >
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryName}>{selectedEmployeeName}</Text>
-            <Text style={styles.summaryPeriod}>{periodLabel}</Text>
+          <View style={{ backgroundColor: "white", padding: 24, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 24 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+              <View>
+                <Text style={{ fontSize: 24, fontWeight: "900", color: "#0f172a" }}>
+                  {selectedEmployeeName}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: "500", color: "#94a3b8", marginTop: 4 }}>
+                  {periodLabel}
+                </Text>
+              </View>
+              {isFullyPaid ? (
+                <View style={{ backgroundColor: "#ecfdf5", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100, borderWidth: 1, borderColor: "#d1fae5" }}>
+                  <Text style={{ color: "#059669", fontWeight: "bold", fontSize: 11, textTransform: "uppercase" }}>
+                    Settled
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ backgroundColor: "#fff1f2", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100, borderWidth: 1, borderColor: "#ffe4e6" }}>
+                  <Text style={{ color: "#e11d48", fontWeight: "bold", fontSize: 11, textTransform: "uppercase" }}>
+                    Unpaid
+                  </Text>
+                </View>
+              )}
+            </View>
 
-            <View style={styles.block}>
-              <View style={styles.blockHeader}>
-                <TabBarIcon name="time-outline" color="#334155" size={17} />
-                <Text style={styles.blockTitle}>Work Summary</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" }}>
+              <View>
+                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>
+                  Work Effort
+                </Text>
+                <Text style={{ fontSize: 15, fontWeight: "bold", color: "#1e293b" }}>
+                  {totalShiftHours + totalOTHours} Total Hours
+                </Text>
               </View>
-              <View style={styles.kv}>
-                <Text style={styles.kvLabel}>Shift Hours</Text>
-                <Text style={styles.kvValue}>{totalShiftHours}h</Text>
-              </View>
-              <View style={styles.kv}>
-                <Text style={styles.kvLabel}>OT Hours</Text>
-                <Text style={styles.kvValue}>{totalOTHours}h</Text>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>
+                  Shift / OT
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>
+                  {totalShiftHours}h / {totalOTHours}h
+                </Text>
               </View>
             </View>
 
-            <View style={styles.block}>
-              <View style={styles.blockHeader}>
-                <TabBarIcon name="wallet-outline" color="#334155" size={17} />
-                <Text style={styles.blockTitle}>Salary Breakdown</Text>
-              </View>
-              <View style={styles.kv}>
-                <Text style={styles.kvLabel}>Shift Salary</Text>
-                <Text style={styles.kvValue}>
+            <View style={{ marginBottom: 24 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
+                <Text style={{ color: "#64748b", fontWeight: "500" }}>
+                  Basic Earnings
+                </Text>
+                <Text style={{ color: "#0f172a", fontWeight: "bold" }}>
                   {formatCurrency(totalShiftSalary)}
                 </Text>
               </View>
-              <View style={styles.kv}>
-                <Text style={styles.kvLabel}>OT Salary</Text>
-                <Text style={styles.kvValue}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
+                <Text style={{ color: "#64748b", fontWeight: "500" }}>
+                  Overtime Bonus
+                </Text>
+                <Text style={{ color: "#0f172a", fontWeight: "bold" }}>
                   {formatCurrency(totalOTSalary)}
                 </Text>
               </View>
-              <View style={styles.kv}>
-                <Text style={styles.kvLabel}>Bonus</Text>
-                <Text style={styles.kvValue}>{formatCurrency(totalBonus)}</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ color: "#64748b", fontWeight: "500" }}>Incentives</Text>
+                <Text style={{ color: "#059669", fontWeight: "bold" }}>
+                  {formatCurrency(totalBonus)}
+                </Text>
               </View>
             </View>
 
-            <View style={[styles.block, styles.totalBlock]}>
-              <View style={styles.blockHeader}>
-                <TabBarIcon name="cash-outline" color="#065f46" size={18} />
-                <Text style={[styles.blockTitle, { color: "#065f46" }]}>
-                  Total Net Salary
-                </Text>
-              </View>
-              <Text style={styles.totalValue}>
+            <View style={{ backgroundColor: "#eef2ff", padding: 20, borderRadius: 16, borderWidth: 1, borderColor: "#e0e7ff", marginBottom: 24 }}>
+              <Text style={{ color: "#4f46e5", fontWeight: "bold", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                Net Payout
+              </Text>
+              <Text style={{ fontSize: 32, fontWeight: "900", color: "#4338ca" }}>
                 {formatCurrency(totalNetSalary)}
               </Text>
             </View>
-          </View>
-
-          <View style={styles.statusCard}>
-            <View style={styles.statusHeader}>
-              <TabBarIcon
-                name={
-                  isFullyPaid
-                    ? "checkmark-circle-outline"
-                    : "alert-circle-outline"
-                }
-                color={isFullyPaid ? "#059669" : "#ea580c"}
-                size={18}
-              />
-              <Text style={styles.statusTitle}>Salary Status</Text>
-            </View>
 
             {isFullyPaid && latestPaymentDate ? (
-              <Text style={styles.statusPaid}>
-                Paid on {formatDateLabel(latestPaymentDate)}
-              </Text>
+              <View style={{ backgroundColor: "#f8fafc", padding: 16, borderRadius: 16, flexDirection: "row", alignItems: "center" }}>
+                <TabBarIcon name="calendar" color="#64748b" size={16} />
+                <Text style={{ color: "#64748b", fontSize: 13, fontWeight: "bold", marginLeft: 8 }}>
+                  Payment released on {formatDateLabel(latestPaymentDate)}
+                </Text>
+              </View>
             ) : (
-              <Text style={styles.statusUnpaid}>Unpaid</Text>
+              <TouchableOpacity
+                onPress={handleMarkAsPaid}
+                disabled={
+                  saving ||
+                  isFullyPaid ||
+                  selectedEmployeeId === "all" ||
+                  totalNetSalary <= 0
+                }
+                style={[
+                  { paddingVertical: 16, borderRadius: 16, alignItems: "center", elevation: 4 },
+                  (saving || isFullyPaid || selectedEmployeeId === "all" || totalNetSalary <= 0)
+                    ? { backgroundColor: "#e2e8f0" }
+                    : { backgroundColor: "#4f46e5", shadowColor: "#4f46e5", shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }
+                ]}
+              >
+                <Text style={{ color: "white", fontWeight: "900", fontSize: 16 }}>
+                  {saving
+                    ? "Processing..."
+                    : isFullyPaid
+                      ? "Fully Settled"
+                      : "Release Payout"}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
 
-          <Pressable
-            onPress={handleMarkAsPaid}
-            disabled={saving || isFullyPaid || selectedEmployeeId === "all"}
-            style={[
-              styles.primaryBtn,
-              saving || isFullyPaid || selectedEmployeeId === "all"
-                ? styles.primaryBtnDisabled
-                : null,
-            ]}
-          >
-            <Text style={styles.primaryText}>
-              {isFullyPaid
-                ? "Already Paid"
-                : saving
-                  ? "Saving..."
-                  : "Mark as Paid"}
-            </Text>
-          </Pressable>
-
-          <Pressable
+          <TouchableOpacity
             onPress={() => router.push("/(owner)/salary-payments")}
-            style={styles.secondaryBtn}
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 16, backgroundColor: "white", borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9" }}
           >
-            <Text style={styles.secondaryText}>View Payment History</Text>
-          </Pressable>
+            <TabBarIcon name="receipt-outline" color="#4f46e5" size={18} />
+            <Text style={{ color: "#4f46e5", fontWeight: "bold", marginLeft: 8 }}>
+              Transaction History
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
 
-      {showFromPicker ? (
-        <DateTimePicker
-          value={customFromDate}
-          mode="date"
-          display={Platform.OS === "ios" ? "inline" : "default"}
-          onChange={(_, value) => {
-            if (Platform.OS === "android") setShowFromPicker(false);
-            if (!value) return;
-            setCustomFromDate(toDayStart(value));
-          }}
-        />
-      ) : null}
-
-      {showToPicker ? (
-        <DateTimePicker
-          value={customToDate}
-          mode="date"
-          display={Platform.OS === "ios" ? "inline" : "default"}
-          onChange={(_, value) => {
-            if (Platform.OS === "android") setShowToPicker(false);
-            if (!value) return;
-            setCustomToDate(toDayEnd(value));
-          }}
-        />
-      ) : null}
-
       <ConfirmDialog
         visible={confirmPaymentVisible}
-        title="Confirm Salary Payment"
-        message="Are you sure you want to mark this salary period as paid?"
+        title="Confirm Payout"
+        message={`Are you sure you want to mark ${formatCurrency(totalNetSalary)} as paid for ${selectedEmployeeName}? This will cover the period from ${formatDateLabel(selectedRange?.from || new Date())} to ${formatDateLabel(selectedRange?.to || new Date())}.`}
         confirmText="Confirm"
-        variant="update"
         loading={saving}
-        onCancel={() => {
-          if (!saving) setConfirmPaymentVisible(false);
-        }}
+        onCancel={() => setConfirmPaymentVisible(false)}
         onConfirm={confirmMarkAsPaid}
       />
-    </SafeAreaView>
+    </View>
   );
 }
+

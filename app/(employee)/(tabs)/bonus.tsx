@@ -3,34 +3,34 @@ import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import React from "react";
 import { FlatList, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
 
 export default function MyBonus() {
   const { bonuses } = useData();
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-6 rounded-3xl shadow-sm mb-4 border border-gray-100">
-      <View className="flex-row justify-between items-center mb-4">
-        <View className="bg-orange-100 p-3 rounded-full">
+    <View style={{ backgroundColor: "white", padding: 24, borderRadius: 32, marginBottom: 16, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <View style={{ backgroundColor: "#ffedd5", padding: 12, borderRadius: 100 }}>
           <TabBarIcon name="gift" color="#f97316" size={24} />
         </View>
-        <Text className="text-2xl font-black text-orange-600">
+        <Text style={{ fontSize: 24, fontWeight: "900", color: "#ea580c" }}>
           {formatCurrency(item.bonusAmount)}
         </Text>
       </View>
 
-      <Text className="text-gray-500 text-xs font-bold uppercase mb-2">
+      <Text style={{ color: "#94a3b8", fontSize: 10, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
         Benefit Period
       </Text>
-      <View className="flex-row items-center mb-4">
-        <Text className="text-gray-800 font-semibold">{item.fromDate}</Text>
-        <Text className="text-gray-400 mx-2">→</Text>
-        <Text className="text-gray-800 font-semibold">{item.toDate}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+        <Text style={{ color: "#1e293b", fontWeight: "600" }}>{item.fromDate}</Text>
+        <Text style={{ color: "#94a3b8", marginHorizontal: 8 }}>→</Text>
+        <Text style={{ color: "#1e293b", fontWeight: "600" }}>{item.toDate}</Text>
       </View>
 
-      <View className="bg-gray-50 p-3 rounded-xl flex-row justify-between items-center">
-        <Text className="text-gray-500 text-xs">Total Shift Hours</Text>
-        <Text className="text-gray-800 font-bold">
+      <View style={{ backgroundColor: "#f8fafc", padding: 12, borderRadius: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <Text style={{ color: "#64748b", fontSize: 12 }}>Total Shift Hours</Text>
+        <Text style={{ color: "#1e293b", fontWeight: "bold" }}>
           {item.totalShiftHours} hrs
         </Text>
       </View>
@@ -38,9 +38,9 @@ export default function MyBonus() {
   );
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
-      <View className="px-6 pt-6 flex-1">
-        <Text className="text-2xl font-bold text-gray-800 mb-6">
+    <SafeAreaView edges={["top"]}>
+      <View style={{ paddingHorizontal: 24, paddingTop: 24, flex: 1 }}>
+        <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1e293b", marginBottom: 24 }}>
           My Bonuses
         </Text>
 
@@ -51,9 +51,9 @@ export default function MyBonus() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center mt-20">
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 }}>
               <TabBarIcon name="gift-outline" color="#d1d5db" size={80} />
-              <Text className="text-gray-400 mt-4 text-lg">
+              <Text style={{ color: "#94a3b8", marginTop: 16, fontSize: 18 }}>
                 No bonuses rewarded yet
               </Text>
             </View>
@@ -63,3 +63,4 @@ export default function MyBonus() {
     </SafeAreaView>
   );
 }
+

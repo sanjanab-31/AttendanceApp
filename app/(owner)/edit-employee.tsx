@@ -1,6 +1,7 @@
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useData } from "@/src/context/DataContext";
 import { useToast } from "@/src/context/ToastContext";
+import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -13,7 +14,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+import { StatusBar } from "expo-status-bar";
 
 type InputFieldProps = {
   label: string;
@@ -22,6 +24,8 @@ type InputFieldProps = {
   placeholder: string;
   keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
   maxLength?: number;
+  iconName?: any;
+  error?: string;
 };
 
 function InputField({
@@ -31,21 +35,67 @@ function InputField({
   placeholder,
   keyboardType = "default",
   maxLength,
+  iconName,
+  error,
 }: InputFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  
   return (
     <View className="mb-4">
-      <Text className="text-gray-600 mb-2 font-medium">{label}</Text>
-      <TextInput
-        className="bg-white border border-gray-200 p-4 rounded-2xl text-gray-800 shadow-sm"
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-      />
+      <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">{label}</Text>
+      <View 
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 1,
+          borderRadius: 16,
+          paddingHorizontal: 16,
+          height: 56,
+          borderColor: isFocused ? "#4f46e5" : error ? "#fb7185" : "#e2e8f0",
+          backgroundColor: error ? "#fff1f2" : "white",
+          elevation: isFocused ? 2 : 0
+        }}
+      >
+        {iconName && (
+           <View className="mr-3">
+             <TabBarIcon name={iconName} color={isFocused ? "#4f46e5" : error ? "#fb7185" : "#94a3b8"} size={20} />
+           </View>
+        )}
+        <TextInput
+          className="flex-1 text-[15px] font-medium text-slate-800 h-full"
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#94a3b8"
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </View>
+      {error ? (
+        <Text className="text-rose-500 text-[12px] font-medium mt-1 ml-1">{error}</Text>
+      ) : null}
     </View>
   );
 }
+
+const parseDateFromKey = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return new Date();
+  const parsedDate = new Date(year, month - 1, day);
+  return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+};
+
+const formatDateDisplay = (dateStr: string) => {
+   if (!dateStr) return "N/A";
+   const date = parseDateFromKey(dateStr);
+   return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+   });
+};
 
 export default function EditEmployee() {
   const { employees, updateEmployee } = useData();
@@ -65,6 +115,7 @@ export default function EditEmployee() {
 
   const [loading, setLoading] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const [employeeConfigured, setEmployeeConfigured] = useState(false);
 
   useEffect(() => {
     const employee = employees.find((e: any) => e.id === id);
@@ -76,6 +127,7 @@ export default function EditEmployee() {
         hourlyRate: employee.hourlyRate.toString(),
         joiningDate: employee.joiningDate,
       });
+      setEmployeeConfigured(true);
     }
   }, [id, employees]);
 
@@ -93,25 +145,22 @@ export default function EditEmployee() {
       !hourlyRate ||
       !joiningDate
     ) {
-      Alert.alert("Error", "Please fill all fields");
+      showToast("Please fill all fields", "error");
       return;
     }
 
     if (!phoneRegex.test(trimmedPhone)) {
-      Alert.alert("Invalid Phone", "Phone number must be exactly 10 digits.");
+      showToast("Phone number must be exactly 10 digits", "error");
       return;
     }
 
     if (!emailRegex.test(normalizedEmail)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      showToast("Please enter a valid email address", "error");
       return;
     }
 
     if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
-      Alert.alert(
-        "Invalid Rate",
-        "Hourly rate must be a valid number greater than 0.",
-      );
+      showToast("Hourly rate must be a valid number greater than 0", "error");
       return;
     }
 
@@ -135,96 +184,124 @@ export default function EditEmployee() {
         joiningDate,
       });
 
-      showToast("Employee updated successfully!", "success");
+      showToast("Member updated successfully!", "success");
       setConfirmVisible(false);
       router.back();
     } catch (error: any) {
-      showToast(error?.message || "Unable to update employee.", "error");
+      showToast(error?.message || "Unable to update profile.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
+         <View className="flex-row items-center px-6 py-4">
+            <TouchableOpacity 
+               onPress={() => router.back()}
+               style={{ width: 40, height: 40, backgroundColor: "white", borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#e2e8f0", elevation: 1 }}
+            >
+               <TabBarIcon name="arrow-back" color="#0f172a" size={20} />
+            </TouchableOpacity>
+            <View className="ml-4">
+               <Text className="text-xl font-extrabold text-slate-900">Edit Member</Text>
+               <Text className="text-[13px] text-slate-500 font-medium mt-0.5">Update {employeeConfigured ? formData.name.split(' ')[0] : 'staff'}'s details</Text>
+            </View>
+         </View>
+
         <ScrollView
-          className="px-6 py-6"
+          style={{ flex: 1 }}
+          className="px-6 pt-2"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <InputField
-            label="Full Name"
-            value={formData.name}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, name: text }))
-            }
-            placeholder="John Doe"
-          />
-          <InputField
-            label="Phone Number"
-            value={formData.phone}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({
-                ...prev,
-                phone: text.replace(/[^\d]/g, "").slice(0, 10),
-              }))
-            }
-            placeholder="1234567890"
-            keyboardType="phone-pad"
-            maxLength={10}
-          />
-          {formData.phone.length > 0 && formData.phone.length !== 10 ? (
-            <Text className="text-red-500 text-xs -mt-2 mb-3">
-              Phone number must be exactly 10 digits.
-            </Text>
-          ) : null}
-          <InputField
-            label="Email Address"
-            value={formData.email}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, email: text }))
-            }
-            placeholder="john@example.com"
-            keyboardType="email-address"
-          />
-          <InputField
-            label="Hourly Rate (₹)"
-            value={formData.hourlyRate}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, hourlyRate: text }))
-            }
-            placeholder="500"
-            keyboardType="numeric"
-          />
-          <InputField
-            label="Joining Date"
-            value={formData.joiningDate}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, joiningDate: text }))
-            }
-            placeholder="YYYY-MM-DD"
-          />
+          {employeeConfigured ? (
+             <View className="mb-6">
+                <InputField
+                  label="Full Name"
+                  iconName="person"
+                  value={formData.name}
+                  onChangeText={(text: string) =>
+                    setFormData((prev) => ({ ...prev, name: text }))
+                  }
+                  placeholder="John Doe"
+                />
+                <InputField
+                  label="Phone Number"
+                  iconName="call"
+                  value={formData.phone}
+                  onChangeText={(text: string) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      phone: text.replace(/[^\d]/g, "").slice(0, 10),
+                    }))
+                  }
+                  placeholder="1234567890"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  error={formData.phone.length > 0 && formData.phone.length !== 10 ? "Must be exactly 10 digits" : undefined}
+                />
+                <InputField
+                  label="Email Address"
+                  iconName="mail"
+                  value={formData.email}
+                  onChangeText={(text: string) =>
+                    setFormData((prev) => ({ ...prev, email: text }))
+                  }
+                  placeholder="john@example.com"
+                  keyboardType="email-address"
+                />
+                
+                <View className="flex-row justify-between mb-4">
+                  <View className="flex-1 mr-2">
+                    <InputField
+                      label="Hourly Rate (â‚¹)"
+                      iconName="cash"
+                      value={formData.hourlyRate}
+                      onChangeText={(text: string) =>
+                        setFormData((prev) => ({ ...prev, hourlyRate: text }))
+                      }
+                      placeholder="e.g. 500"
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View className="flex-1 ml-2">
+                    <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Joining Date</Text>
+                    <View className="flex-row items-center bg-slate-100 border border-slate-200 rounded-2xl px-4 h-14">
+                      <TabBarIcon name="calendar" color="#94a3b8" size={20} />
+                      <Text className="text-[14px] font-bold text-slate-500 ml-3">{formatDateDisplay(formData.joiningDate)}</Text>
+                    </View>
+                  </View>
+                </View>
 
-          <TouchableOpacity
-            className={`bg-blue-600 p-4 rounded-2xl mt-4 mb-10 items-center ${loading ? "opacity-70" : ""}`}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            <Text className="text-white font-bold text-lg">
-              {loading ? "Saving..." : "Update Details"}
-            </Text>
-          </TouchableOpacity>
+                <TouchableOpacity
+                  className={`py-4 rounded-2xl items-center shadow-lg mt-4 mb-10 ${loading ? "bg-indigo-400" : "bg-indigo-600 shadow-indigo-200"}`}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text className="text-white font-extrabold text-[16px]">
+                    {loading ? "Updating..." : "Save Changes"}
+                  </Text>
+                </TouchableOpacity>
+             </View>
+          ) : (
+            <View className="items-center justify-center py-20">
+               <Text className="text-slate-500 font-medium">Loading details...</Text>
+            </View>
+          )}
+
         </ScrollView>
       </KeyboardAvoidingView>
 
       <ConfirmDialog
         visible={confirmVisible}
         title="Confirm Update"
-        message="Are you sure you want to update the employee details?"
+        message={`Are you sure you want to update ${formData.name}'s details?`}
         confirmText="Update"
         variant="update"
         loading={loading}
@@ -238,3 +315,4 @@ export default function EditEmployee() {
     </SafeAreaView>
   );
 }
+

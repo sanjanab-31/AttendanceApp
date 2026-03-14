@@ -4,15 +4,16 @@ import { formatCurrency } from "@/src/utils/salary";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useMemo, useState } from "react";
 import {
-    FlatList,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  FlatList,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 type QuickFilter = "all" | "today" | "week" | "month" | "custom";
 type PickerTarget = "from" | "to" | null;
@@ -86,6 +87,7 @@ const formatPickerDate = (value: Date | null) => {
 
 export default function AttendanceHistory() {
   const { attendance, employees } = useData();
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("all");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
@@ -210,246 +212,212 @@ export default function AttendanceHistory() {
     const hourlyRate = employeeRateMap.get(item.employeeId) ?? 0;
 
     return (
-      <View className="mb-3 rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
-        <View className="flex-row items-start justify-between">
-          <View className="flex-1 pr-3">
-            <Text className="text-[16px] font-bold text-slate-900">
-              {item.employeeName}
-            </Text>
-            <View className="mt-1 flex-row items-center">
-              <TabBarIcon name="calendar-outline" color="#64748b" size={15} />
-              <Text className="ml-1 text-xs font-medium text-slate-500">
-                {formatAttendanceDate(item.date)}
-              </Text>
-            </View>
-          </View>
-
-          <View className="rounded-2xl bg-emerald-50 px-3 py-2">
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-              Salary
-            </Text>
-            <Text className="mt-0.5 text-base font-bold text-emerald-700">
-              {formatCurrency(item.totalSalary || 0)}
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-3 rounded-2xl bg-slate-50 px-3 py-3">
-          <View className="flex-row items-center justify-between">
-            <View className="mr-2 flex-1 rounded-xl bg-white px-3 py-2">
-              <View className="flex-row items-center">
-                <TabBarIcon name="time-outline" color="#2563eb" size={15} />
-                <Text className="ml-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  Shift
-                </Text>
-              </View>
-              <Text className="mt-1 text-sm font-bold text-slate-800">
-                {item.shiftHours || 0}h
-              </Text>
-            </View>
-
-            <View className="ml-2 flex-1 rounded-xl bg-white px-3 py-2">
-              <View className="flex-row items-center">
-                <TabBarIcon name="timer-outline" color="#f97316" size={15} />
-                <Text className="ml-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  OT
-                </Text>
-              </View>
-              <Text className="mt-1 text-sm font-bold text-slate-800">
-                {item.otHours || 0}h
-              </Text>
-            </View>
-          </View>
-
-          <View className="mt-3 flex-row items-center justify-between rounded-xl bg-white px-3 py-2.5">
-            <View className="flex-row items-center">
-              <TabBarIcon name="wallet-outline" color="#7c3aed" size={15} />
-              <Text className="ml-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Hourly Rate
-              </Text>
-            </View>
-            <Text className="text-sm font-bold text-slate-800">
-              ₹{hourlyRate}/hr
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-3 rounded-2xl bg-slate-50 px-3 py-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            Remarks
+      <View style={{ marginBottom: 16, borderRadius: 24, backgroundColor: "white", padding: 20, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 17, fontWeight: "bold", color: "#0f172a" }}>
+            {item.employeeName}
           </Text>
-          <Text className="mt-1 text-sm text-slate-700">
-            {item.remarks?.trim() ? item.remarks : "None"}
+          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+            <View style={{ backgroundColor: "#eef2ff", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginRight: 8 }}>
+              <Text style={{ color: "#4f46e5", fontSize: 10, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {item.employeeId}
+              </Text>
+            </View>
+            <Text style={{ color: "#94a3b8", fontSize: 12, fontWeight: "500" }}>
+              {formatAttendanceDate(item.date)}
+            </Text>
+          </View>
+        </View>
+        <View style={{ alignItems: "flex-end", backgroundColor: "#ecfdf5", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}>
+          <Text style={{ color: "#059669", fontWeight: "900", fontSize: 16 }}>
+            {formatCurrency(item.totalSalary || 0)}
           </Text>
         </View>
+      </View>
+
+      <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", padding: 16, borderRadius: 16, marginBottom: 16 }}>
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: "#e2e8f0", marginRight: 16 }}>
+           <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Shift</Text>
+           <View style={{ flexDirection: "row", alignItems: "center" }}>
+             <TabBarIcon name="time-outline" color="#4f46e5" size={14} />
+             <Text style={{ marginLeft: 6, fontSize: 15, fontWeight: "bold", color: "#1e293b" }}>{item.shiftHours}h</Text>
+           </View>
+        </View>
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: "#e2e8f0", marginRight: 16 }}>
+           <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Overtime</Text>
+           <View style={{ flexDirection: "row", alignItems: "center" }}>
+             <TabBarIcon name="flash-outline" color="#f59e0b" size={14} />
+             <Text style={{ marginLeft: 6, fontSize: 15, fontWeight: "bold", color: "#1e293b" }}>{item.otHours}h</Text>
+           </View>
+        </View>
+        <View style={{ flex: 1 }}>
+           <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Base Rate</Text>
+           <Text style={{ fontSize: 15, fontWeight: "bold", color: "#1e293b" }}>₹{hourlyRate}/h</Text>
+        </View>
+      </View>
+
+      {item.remarks?.trim() ? (
+        <View style={{ backgroundColor: "#fffbeb", padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "#fef3c7" }}>
+          <Text style={{ fontSize: 11, fontWeight: "bold", color: "#b45309", textTransform: "uppercase", marginBottom: 4, letterSpacing: 0.5 }}>Notes</Text>
+          <Text style={{ color: "#475569", fontSize: 13, lineHeight: 18, fontStyle: "italic" }}>{item.remarks}</Text>
+        </View>
+      ) : null}
       </View>
     );
   };
 
   const listHeader = (
-    <View className="pb-4">
-      <View className="mb-4 flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <Text className="text-[28px] font-bold text-slate-900">
-            Attendance History
-          </Text>
-          <Text className="mt-1 text-sm text-slate-500">
-            Search and filter attendance records across all employees.
-          </Text>
-        </View>
-
-        <Pressable
+    <View style={{ padding: 24 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <Text style={{ fontSize: 30, fontWeight: "900", color: "#0f172a" }}>History</Text>
+        <TouchableOpacity 
           onPress={clearFilters}
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2"
+          style={{ backgroundColor: "#e2e8f0", paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 }}
         >
-          <Text className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            Clear
-          </Text>
-        </Pressable>
+          <Text style={{ color: "#475569", fontWeight: "bold", fontSize: 12 }}>Reset All</Text>
+        </TouchableOpacity>
       </View>
+      <Text style={{ color: "#64748b", fontWeight: "500", fontSize: 15, marginBottom: 32, lineHeight: 22 }}>
+        Trace and manage all attendance contributions and payouts.
+      </Text>
 
-      <View className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-        <View className="flex-row items-center rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
-          <TabBarIcon name="search" color="#94a3b8" size={18} />
-          <TextInput
-            className="ml-2 flex-1 text-[14px] text-slate-800"
-            placeholder="Search by employee name"
-            placeholderTextColor="#94a3b8"
+      {/* Search Bar */}
+      <View style={{ backgroundColor: "white", borderWidth: 1, borderColor: "#f1f5f9", padding: 8, borderRadius: 16, elevation: 1, flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+         <View className="w-10 h-10 items-center justify-center">
+            <TabBarIcon name="search" color="#94a3b8" size={18} />
+         </View>
+         <TextInput
+            style={{ flex: 1, fontSize: 15, fontWeight: "500", color: "#0f172a", paddingHorizontal: 8 }}
+            placeholder="Filter by name..."
+            placeholderTextColor="#cbd5e1"
             value={search}
             onChangeText={setSearch}
-          />
-        </View>
+         />
+      </View>
 
-        <Text className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-[1px] text-slate-500">
-          Employee Filter
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: 4 }}
-        >
+      {/* Employee Chips */}
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: "#64748b", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, marginLeft: 4 }}>Member</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row" }}>
           {employeeChips.map((employee: any) => {
             const isActive = selectedEmployeeId === employee.id;
             return (
-              <Pressable
+              <TouchableOpacity
                 key={employee.id}
                 onPress={() => setSelectedEmployeeId(employee.id)}
-                className={`mr-2 rounded-full border px-4 py-2.5 ${isActive ? "border-blue-600 bg-blue-600" : "border-slate-200 bg-white"}`}
+                style={{
+                  marginRight: 10,
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  backgroundColor: isActive ? "#4f46e5" : "white",
+                  borderColor: isActive ? "#4f46e5" : "#f1f5f9",
+                  elevation: isActive ? 4 : 0
+                }}
               >
-                <Text
-                  className={`text-sm font-semibold ${isActive ? "text-white" : "text-slate-700"}`}
-                >
+                <Text style={{ fontWeight: "bold", fontSize: 13, color: isActive ? "white" : "#475569" }}>
                   {employee.label}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
+      </View>
 
-        <Text className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-[1px] text-slate-500">
-          Date Filters
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: 4 }}
-        >
+      {/* Date Filter Chips */}
+      <View style={{ marginBottom: 24 }}>
+        <Text style={{ color: "#64748b", fontWeight: "bold", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, marginLeft: 4 }}>Interval</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row" }}>
           {[
+            { key: "all", label: "Full Scan" },
             { key: "today", label: "Today" },
             { key: "week", label: "This Week" },
             { key: "month", label: "This Month" },
-            { key: "custom", label: "Custom" },
+            { key: "custom", label: "Range Selection" },
           ].map((filter) => {
             const isActive = quickFilter === filter.key;
             return (
-              <Pressable
+              <TouchableOpacity
                 key={filter.key}
-                onPress={() =>
-                  handleQuickFilterPress(filter.key as QuickFilter)
-                }
-                className={`mr-2 rounded-full border px-4 py-2.5 ${isActive ? "border-emerald-600 bg-emerald-600" : "border-slate-200 bg-white"}`}
+                onPress={() => handleQuickFilterPress(filter.key as QuickFilter)}
+                style={{
+                  marginRight: 10,
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  backgroundColor: isActive ? "#4f46e5" : "white",
+                  borderColor: isActive ? "#4f46e5" : "#f1f5f9",
+                  elevation: isActive ? 4 : 0
+                }}
               >
-                <Text
-                  className={`text-sm font-semibold ${isActive ? "text-white" : "text-slate-700"}`}
-                >
+                <Text style={{ fontWeight: "bold", fontSize: 13, color: isActive ? "white" : "#475569" }}>
                   {filter.label}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
-
-        {quickFilter === "custom" ? (
-          <View className="mt-4 rounded-[20px] bg-slate-50 p-3">
-            <View className="flex-row">
-              <Pressable
-                onPress={() => setPickerTarget("from")}
-                className="mr-2 flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-3"
-              >
-                <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  From Date
-                </Text>
-                <View className="mt-1 flex-row items-center justify-between">
-                  <Text className="text-sm font-semibold text-slate-800">
-                    {formatPickerDate(customFromDate)}
-                  </Text>
-                  <TabBarIcon
-                    name="calendar-outline"
-                    color="#2563eb"
-                    size={16}
-                  />
-                </View>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setPickerTarget("to")}
-                className="ml-2 flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-3"
-              >
-                <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  To Date
-                </Text>
-                <View className="mt-1 flex-row items-center justify-between">
-                  <Text className="text-sm font-semibold text-slate-800">
-                    {formatPickerDate(customToDate)}
-                  </Text>
-                  <TabBarIcon
-                    name="calendar-outline"
-                    color="#2563eb"
-                    size={16}
-                  />
-                </View>
-              </Pressable>
-            </View>
-
-            {pickerTarget ? (
-              <View className="mt-3 rounded-2xl border border-slate-200 bg-white px-2 py-2">
-                <DateTimePicker
-                  value={pickerValue}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "inline" : "default"}
-                  onChange={onChangeCustomDate}
-                />
-              </View>
-            ) : null}
-          </View>
-        ) : null}
       </View>
 
-      <View className="mt-4 flex-row items-center justify-between px-1">
-        <Text className="text-sm font-semibold text-slate-700">
-          {filteredAttendance.length} records found
-        </Text>
-        <View className="rounded-full bg-slate-200 px-3 py-1">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Latest first
-          </Text>
+      {/* Custom Range Picker */}
+      {quickFilter === "custom" && (
+        <View style={{ backgroundColor: "white", padding: 16, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", marginBottom: 24, elevation: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <TouchableOpacity 
+              onPress={() => setPickerTarget("from")}
+              style={[{ flex: 1, padding: 12, borderRadius: 16, borderWidth: 1 }, pickerTarget === 'from' ? { borderColor: "#4f46e5", backgroundColor: "rgba(79, 70, 229, 0.03)" } : { borderColor: "#f8fafc", backgroundColor: "#f8fafc" }]}
+            >
+              <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Start From</Text>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>{formatPickerDate(customFromDate)}</Text>
+            </TouchableOpacity>
+            <View style={{ width: 16, height: 1, backgroundColor: "#e2e8f0", marginHorizontal: 8 }} />
+            <TouchableOpacity 
+              onPress={() => setPickerTarget("to")}
+              style={[{ flex: 1, padding: 12, borderRadius: 16, borderWidth: 1 }, pickerTarget === 'to' ? { borderColor: "#4f46e5", backgroundColor: "rgba(79, 70, 229, 0.03)" } : { borderColor: "#f8fafc", backgroundColor: "#f8fafc" }]}
+            >
+              <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>End At</Text>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>{formatPickerDate(customToDate)}</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {pickerTarget && (
+            <View style={{ borderTopWidth: 1, borderTopColor: "#f8fafc", paddingTop: 8 }}>
+              <DateTimePicker
+                value={pickerValue}
+                mode="date"
+                display={Platform.OS === "ios" ? "inline" : "default"}
+                onChange={onChangeCustomDate}
+                accentColor="#4f46e5"
+              />
+              <TouchableOpacity 
+                onPress={() => setPickerTarget(null)}
+                style={{ marginTop: 8, alignItems: "center", paddingVertical: 8 }}
+              >
+                <Text style={{ color: "#4f46e5", fontWeight: "bold" }}>Done Selection</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
+      )}
+
+      {/* Result Meta */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16, marginTop: 8, paddingHorizontal: 4 }}>
+        <Text style={{ fontSize: 13, fontWeight: "bold", color: "#94a3b8" }}>
+           Found {filteredAttendance.length} records
+        </Text>
+        <Text style={{ fontSize: 13, fontWeight: "bold", color: "#94a3b8", fontStyle: "italic" }}>
+          Newest entries first
+        </Text>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-slate-50">
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      <StatusBar style="dark" />
       <FlatList
         data={filteredAttendance}
         renderItem={renderItem}
@@ -457,26 +425,20 @@ export default function AttendanceHistory() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={listHeader}
         contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 88,
+          paddingBottom: 120,
         }}
         ListEmptyComponent={
-          <View className="mt-4 items-center rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-10">
-            <TabBarIcon
-              name="calendar-clear-outline"
-              color="#cbd5e1"
-              size={44}
-            />
-            <Text className="mt-3 text-base font-bold text-slate-700">
-              No attendance records found
-            </Text>
-            <Text className="mt-1 text-center text-sm text-slate-500">
-              Try a different employee, search term, or date range.
+          <View style={{ marginHorizontal: 24, alignItems: "center", justifyContent: "center", paddingVertical: 80, backgroundColor: "white", borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", borderStyle: "dashed" }}>
+            <View style={{ width: 64, height: 64, backgroundColor: "#f8fafc", borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <TabBarIcon name="calendar-clear-outline" color="#cbd5e1" size={32} />
+            </View>
+            <Text style={{ color: "#1e293b", fontWeight: "bold", fontSize: 18 }}>No Results Found</Text>
+            <Text style={{ color: "#94a3b8", textAlign: "center", paddingHorizontal: 32, marginTop: 8, lineHeight: 20 }}>
+              We couldn't find any logs matching your current filters. Try relaxing the search parameters.
             </Text>
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }

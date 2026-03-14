@@ -3,8 +3,9 @@ import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useMemo, useState } from "react";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Platform, Pressable, ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 type PickerTarget = "from" | "to" | null;
 
@@ -30,7 +31,7 @@ const endOfDay = (value: Date) =>
   );
 
 const formatDateLabel = (value: Date | null) => {
-  if (!value) return "Select date";
+  if (!value) return "Pick Date";
   return value.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
@@ -40,6 +41,7 @@ const formatDateLabel = (value: Date | null) => {
 
 export default function Reports() {
   const { employees, attendance, bonuses } = useData();
+  const insets = useSafeAreaInsets();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("all");
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -117,181 +119,185 @@ export default function Reports() {
       : toDate || fromDate || new Date();
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-slate-50">
-      <ScrollView className="px-4 pt-4" showsVerticalScrollIndicator={false}>
-        <Text className="text-[24px] font-bold text-slate-900">
-          Business Reports
-        </Text>
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      <StatusBar style="dark" />
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={{ fontSize: 30, fontWeight: "900", color: "#0f172a", marginBottom: 24 }}>Reports</Text>
 
-        <View className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
-          <Text className="text-[17px] font-semibold text-slate-900">
-            Filters
-          </Text>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mt-3"
-            contentContainerStyle={{ paddingRight: 4 }}
-          >
-            <Pressable
-              onPress={() => setSelectedEmployeeId("all")}
-              className={`mr-2 rounded-full border px-4 py-2.5 ${selectedEmployeeId === "all" ? "border-blue-600 bg-blue-600" : "border-slate-200 bg-white"}`}
+        <View style={{ backgroundColor: "white", padding: 20, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 24 }}>
+          <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Date Filtration</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <TouchableOpacity
+              onPress={() => setPickerTarget("from")}
+              style={{ flex: 1, backgroundColor: "#f8fafc", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", marginRight: 8 }}
             >
-              <Text
-                className={`text-[13px] font-semibold ${selectedEmployeeId === "all" ? "text-white" : "text-slate-700"}`}
-              >
-                All Employees
+              <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>From</Text>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>{formatDateLabel(fromDate)}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setPickerTarget("to")}
+              style={{ flex: 1, backgroundColor: "#f8fafc", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", marginLeft: 8 }}
+            >
+              <Text style={{ fontSize: 10, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>To</Text>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>{formatDateLabel(toDate)}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {pickerTarget && (
+            <View style={{ backgroundColor: "#f8fafc", borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: "#f1f5f9" }}>
+               <DateTimePicker
+                 value={pickerValue}
+                 mode="date"
+                 display={Platform.OS === "ios" ? "inline" : "default"}
+                 onChange={(_event, selectedDate) => {
+                   if (Platform.OS === "android") setPickerTarget(null);
+                   if (!selectedDate) return;
+
+                   if (pickerTarget === "from") {
+                     const nextFrom = startOfDay(selectedDate);
+                     setFromDate(nextFrom);
+                     if (toDate && nextFrom > endOfDay(toDate)) {
+                       setToDate(endOfDay(selectedDate));
+                     }
+                   } else {
+                     const nextTo = endOfDay(selectedDate);
+                     setToDate(nextTo);
+                     if (fromDate && nextTo < startOfDay(fromDate)) {
+                       setFromDate(startOfDay(selectedDate));
+                     }
+                   }
+                   if (Platform.OS === "ios" && _event.type === "set") setPickerTarget(null);
+                 }}
+               />
+            </View>
+          )}
+
+          <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginTop: 16, marginBottom: 12 }}>Staff Filter</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              onPress={() => setSelectedEmployeeId("all")}
+              style={{
+                marginRight: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 12,
+                borderWidth: 1,
+                backgroundColor: selectedEmployeeId === "all" ? "#4f46e5" : "white",
+                borderColor: selectedEmployeeId === "all" ? "#4f46e5" : "#f1f5f9"
+              }}
+            >
+              <Text style={{ fontWeight: "bold", fontSize: 12, color: selectedEmployeeId === "all" ? "white" : "#475569" }}>
+                All Staff
               </Text>
-            </Pressable>
+            </TouchableOpacity>
             {employees.map((employee: any) => {
               const active = selectedEmployeeId === employee.id;
               return (
-                <Pressable
+                <TouchableOpacity
                   key={employee.id}
                   onPress={() => setSelectedEmployeeId(employee.id)}
-                  className={`mr-2 rounded-full border px-4 py-2.5 ${active ? "border-blue-600 bg-blue-600" : "border-slate-200 bg-white"}`}
+                  style={{
+                    marginRight: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    backgroundColor: active ? "#4f46e5" : "white",
+                    borderColor: active ? "#4f46e5" : "#f1f5f9"
+                  }}
                 >
-                  <Text
-                    className={`text-[13px] font-semibold ${active ? "text-white" : "text-slate-700"}`}
-                  >
+                  <Text style={{ fontWeight: "bold", fontSize: 12, color: active ? "white" : "#475569" }}>
                     {employee.name}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
-
-          <View className="mt-4 flex-row">
-            <Pressable
-              onPress={() => setPickerTarget("from")}
-              className="mr-2 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
-            >
-              <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                From Date
-              </Text>
-              <Text className="mt-1 text-[14px] font-semibold text-slate-800">
-                {formatDateLabel(fromDate)}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPickerTarget("to")}
-              className="ml-2 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
-            >
-              <Text className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                To Date
-              </Text>
-              <Text className="mt-1 text-[14px] font-semibold text-slate-800">
-                {formatDateLabel(toDate)}
-              </Text>
-            </Pressable>
-          </View>
-
-          {pickerTarget ? (
-            <View className="mt-3 rounded-2xl border border-slate-200 bg-white p-2">
-              <DateTimePicker
-                value={pickerValue}
-                mode="date"
-                display={Platform.OS === "ios" ? "inline" : "default"}
-                onChange={(_event, selectedDate) => {
-                  if (Platform.OS === "android") setPickerTarget(null);
-                  if (!selectedDate) return;
-
-                  if (pickerTarget === "from") {
-                    const nextFrom = startOfDay(selectedDate);
-                    setFromDate(nextFrom);
-                    if (toDate && nextFrom > endOfDay(toDate)) {
-                      setToDate(endOfDay(selectedDate));
-                    }
-                    return;
-                  }
-
-                  const nextTo = endOfDay(selectedDate);
-                  setToDate(nextTo);
-                  if (fromDate && nextTo < startOfDay(fromDate)) {
-                    setFromDate(startOfDay(selectedDate));
-                  }
-                }}
-              />
-            </View>
-          ) : null}
         </View>
 
-        <View className="mt-4 flex-row flex-wrap justify-between">
-          <View className="mb-3 w-[48%] rounded-2xl border border-slate-200 bg-white p-4">
-            <Text className="text-[12px] text-slate-500">Total Employees</Text>
-            <Text className="mt-1 text-[18px] font-semibold text-slate-900">
-              {stats.totalEmployees}
-            </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 8 }}>
+          <View style={{ width: "48%", backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 16 }}>
+            <View style={{ backgroundColor: "#eef2ff", width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+               <TabBarIcon name="people" color="#4f46e5" size={16} />
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Staff Count</Text>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0f172a" }}>{stats.totalEmployees}</Text>
           </View>
-          <View className="mb-3 w-[48%] rounded-2xl border border-slate-200 bg-white p-4">
-            <Text className="text-[12px] text-slate-500">Total Attendance</Text>
-            <Text className="mt-1 text-[18px] font-semibold text-slate-900">
-              {stats.totalAttendance}
-            </Text>
+          <View style={{ width: "48%", backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 16 }}>
+            <View style={{ backgroundColor: "#fffbeb", width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+               <TabBarIcon name="calendar" color="#d97706" size={16} />
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Sessions</Text>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0f172a" }}>{stats.totalAttendance}</Text>
           </View>
-          <View className="mb-3 w-[48%] rounded-2xl border border-slate-200 bg-white p-4">
-            <Text className="text-[12px] text-slate-500">
-              Total Shift Hours
-            </Text>
-            <Text className="mt-1 text-[18px] font-semibold text-slate-900">
-              {stats.shiftHours}h
-            </Text>
+          <View style={{ width: "48%", backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 16 }}>
+            <View style={{ backgroundColor: "#ecfdf5", width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+               <TabBarIcon name="time" color="#059669" size={16} />
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Work Hours</Text>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0f172a" }}>{stats.shiftHours}h</Text>
           </View>
-          <View className="mb-3 w-[48%] rounded-2xl border border-slate-200 bg-white p-4">
-            <Text className="text-[12px] text-slate-500">Total Salary</Text>
-            <Text className="mt-1 text-[18px] font-semibold text-emerald-700">
+          <View style={{ width: "48%", backgroundColor: "white", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 16 }}>
+            <View style={{ backgroundColor: "#fff1f2", width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+               <TabBarIcon name="cash" color="#e11d48" size={16} />
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>Total Cost</Text>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0f172a" }}>
               {formatCurrency(stats.totalSalary + stats.totalBonus)}
             </Text>
           </View>
         </View>
 
-        <View className="mb-24 mt-2 rounded-3xl border border-slate-200 bg-white p-4">
-          <Text className="text-[17px] font-semibold text-slate-900">
-            Detailed Breakdown
-          </Text>
+        <View style={{ backgroundColor: "white", padding: 20, borderRadius: 32, borderWidth: 1, borderColor: "#f1f5f9", elevation: 2, marginBottom: 80 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+             <Text style={{ fontSize: 16, fontWeight: "900", color: "#0f172a" }}>Activity Log</Text>
+             <TouchableOpacity style={{ backgroundColor: "#eef2ff", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100 }}>
+                <Text style={{ color: "#4f46e5", fontWeight: "bold", fontSize: 11, textTransform: "uppercase" }}>Details</Text>
+             </TouchableOpacity>
+          </View>
 
           {reportRows.length > 0 ? (
             reportRows.map((item: any, index: number) => (
               <View
                 key={item.id}
-                className={`py-3 ${index !== reportRows.length - 1 ? "border-b border-slate-100" : ""}`}
+                style={{
+                  paddingVertical: 16,
+                  borderBottomWidth: index !== reportRows.length - 1 ? 1 : 0,
+                  borderBottomColor: "#f8fafc"
+                }}
               >
-                <View className="flex-row items-start justify-between">
-                  <View className="flex-1 pr-3">
-                    <Text className="text-[15px] font-semibold text-slate-900">
-                      {item.employeeName}
-                    </Text>
-                    <Text className="mt-1 text-[13px] text-slate-500">
-                      {parseRecordDate(item.date)?.toLocaleDateString(
-                        "en-IN",
-                      ) || "N/A"}
-                    </Text>
-                  </View>
-                  <Text className="text-[14px] font-semibold text-emerald-700">
-                    {formatCurrency(Number(item.totalSalary || 0))}
-                  </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                   <Text style={{ fontSize: 14, fontWeight: "bold", color: "#1e293b" }}>{item.employeeName}</Text>
+                   <Text style={{ fontSize: 14, fontWeight: "900", color: "#4f46e5" }}>
+                     {formatCurrency(Number(item.totalSalary || 0))}
+                   </Text>
                 </View>
-                <Text className="mt-2 text-[13px] text-slate-600">
-                  Shift: {Number(item.shiftHours || 0)}h | OT:{" "}
-                  {Number(item.otHours || 0)}h
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                   <Text style={{ fontSize: 12, fontWeight: "500", color: "#94a3b8" }}>
+                     {parseRecordDate(item.date)?.toLocaleDateString("en-IN", { day: 'numeric', month: 'short' }) || "N/A"}
+                   </Text>
+                   <Text style={{ fontSize: 12, fontWeight: "bold", color: "#64748b" }}>
+                     {item.shiftHours}h Shift {item.otHours > 0 ? `+ ${item.otHours}h OT` : ''}
+                   </Text>
+                </View>
               </View>
             ))
           ) : (
-            <View className="items-center py-10">
-              <TabBarIcon
-                name="document-text-outline"
-                color="#cbd5e1"
-                size={34}
-              />
-              <Text className="mt-2 text-[13px] text-slate-400">
-                No records found
-              </Text>
+            <View style={{ alignItems: "center", paddingVertical: 40 }}>
+              <View style={{ backgroundColor: "#f8fafc", width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                <TabBarIcon name="document-text" color="#cbd5e1" size={32} />
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: "#94a3b8" }}>No activity data found</Text>
+              <Text style={{ fontSize: 12, color: "#cbd5e1", marginTop: 4 }}>Try adjusting your filters</Text>
             </View>
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
+

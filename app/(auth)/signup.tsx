@@ -4,15 +4,34 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+import { StatusBar } from "expo-status-bar";
+
+const SignupInput = ({ label, value, onChangeText, placeholder, secureTextEntry, mt, keyboardType }: any) => (
+  <View className={mt ? "mt-5" : ""}>
+    <Text className="text-slate-700 mb-2.5 font-semibold text-[14px] ml-1">{label}</Text>
+    <TextInput
+      className="bg-white border border-slate-200 p-4 rounded-2xl text-slate-900 text-[16px] shadow-sm shadow-slate-100"
+      placeholder={placeholder}
+      placeholderTextColor="#94a3b8"
+      value={value}
+      onChangeText={onChangeText}
+      autoCapitalize={keyboardType === "email-address" ? "none" : undefined}
+      keyboardType={keyboardType}
+      secureTextEntry={secureTextEntry}
+    />
+  </View>
+);
 
 export default function OwnerSignupScreen() {
   const router = useRouter();
@@ -57,82 +76,97 @@ export default function OwnerSignupScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 justify-center px-8 py-12">
-          <View className="items-center mb-10">
-            <View className="w-24 h-24 bg-blue-100 rounded-full items-center justify-center mb-4">
-              <Text className="text-4xl">👤</Text>
+    <SafeAreaView>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          className="px-6"
+        >
+          <View className="flex-1 justify-center py-12">
+            {/* Header Section */}
+            <View className="items-center mb-10">
+              <View className="w-24 h-24 bg-indigo-600 rounded-3xl items-center justify-center mb-6 shadow-xl shadow-indigo-200">
+                <Text className="text-4xl">ðŸ‘¤</Text>
+              </View>
+              <Text className="text-4xl font-bold text-slate-900 tracking-tight">
+                Owner <Text className="text-indigo-600">Signup</Text>
+              </Text>
+              <Text className="text-slate-500 mt-2 text-center text-lg font-medium">
+                Create your administrative account
+              </Text>
             </View>
-            <Text className="text-3xl font-bold text-gray-800">
-              Owner Signup
-            </Text>
-            <Text className="text-gray-500 mt-2">
-              Create your admin account
-            </Text>
-          </View>
 
-          <View className="space-y-4">
+            {/* Form Fields */}
             <View>
-              <Text className="text-gray-600 mb-2 font-medium">Name</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-800"
-                placeholder="Owner Name"
+              <SignupInput
+                label="Full Name"
+                placeholder="Enter your name"
                 value={name}
                 onChangeText={setName}
               />
-            </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-600 mb-2 font-medium">
-                Email Address
-              </Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-800"
-                placeholder="owner@example.com"
+              <SignupInput
+                label="Email Address"
+                placeholder="owner@company.com"
                 value={email}
                 onChangeText={setEmail}
-                autoCapitalize="none"
                 keyboardType="email-address"
+                mt
               />
-            </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-600 mb-2 font-medium">Password</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-800"
-                placeholder="••••••••"
+              <SignupInput
+                label="Password"
+                placeholder="Min. 8 characters"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                mt
               />
+
+              <TouchableOpacity
+                className={`bg-indigo-600 p-5 rounded-2xl mt-10 items-center shadow-lg shadow-indigo-200 ${
+                  loading ? "opacity-70" : ""
+                }`}
+                onPress={handleSignup}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-bold text-lg">
+                    Create Account
+                  </Text>
+                )}
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              className={`bg-blue-600 p-4 rounded-xl mt-8 items-center ${loading ? "opacity-70" : ""}`}
-              onPress={handleSignup}
-              disabled={loading}
-            >
-              <Text className="text-white font-bold text-lg">
-                {loading ? "Creating..." : "Create Owner Account"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            <View className="mt-8 items-center">
+              <View className="flex-row items-center">
+                <Text className="text-slate-500 font-medium">Already have an account? </Text>
+                <Link href="/(auth)/login" asChild>
+                  <TouchableOpacity>
+                    <Text className="text-indigo-600 font-bold">Sign In</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </View>
 
-          <View className="mt-8 items-center">
-            <Link href="/(auth)/login" asChild>
-              <TouchableOpacity>
-                <Text className="text-blue-600 font-semibold">
-                  Already have an account? Login
-                </Text>
-              </TouchableOpacity>
-            </Link>
+            {/* Footer */}
+            <View className="mt-auto pt-10 items-center">
+              <Text className="text-slate-400 text-xs font-semibold tracking-widest uppercase">
+                Step 1 of 2: Profile Creation
+              </Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
+

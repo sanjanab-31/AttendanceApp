@@ -2,60 +2,112 @@ import { auth, db } from "@/src/config/firebase";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    limit,
-    query,
-    where,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  where,
 } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+import { StatusBar } from "expo-status-bar";
+
+const resolveRole = async (uid: string, userEmail: string) => {
+  const ownerByUid = await getDoc(doc(db, "users", uid));
+  if (ownerByUid.exists()) return ownerByUid.data()?.role;
+
+  const ownerByEmail = await getDocs(
+    query(collection(db, "users"), where("email", "==", userEmail), limit(1)),
+  );
+  if (!ownerByEmail.empty) return ownerByEmail.docs[0].data()?.role;
+
+  const empByUid = await getDocs(
+    query(collection(db, "employees"), where("uid", "==", uid), limit(1)),
+  );
+  if (!empByUid.empty) return empByUid.docs[0].data()?.role;
+
+  const empByEmail = await getDocs(
+    query(
+      collection(db, "employees"),
+      where("email", "==", userEmail),
+      limit(1),
+    ),
+  );
+  if (!empByEmail.empty) return empByEmail.docs[0].data()?.role;
+
+  return null;
+};
+
+const RoleSwitcher = ({ selectedRole, onSelect }: { selectedRole: string; onSelect: (role: "owner" | "employee") => void }) => (
+  <View className="bg-slate-200/50 rounded-2xl p-1.5 flex-row mb-8">
+    <TouchableOpacity
+      onPress={() => onSelect("owner")}
+      className={`flex-1 py-3.5 rounded-xl items-center ${
+        selectedRole === "owner" ? "bg-white shadow-sm" : ""
+      }`}
+    >
+      <Text
+        className={`font-bold text-[15px] ${
+          selectedRole === "owner" ? "text-indigo-600" : "text-slate-500"
+        }`}
+      >
+        Owner
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={() => onSelect("employee")}
+      className={`flex-1 py-3.5 rounded-xl items-center ${
+        selectedRole === "employee" ? "bg-white shadow-sm" : ""
+      }`}
+    >
+      <Text
+        className={`font-bold text-[15px] ${
+          selectedRole === "employee" ? "text-indigo-600" : "text-slate-500"
+        }`}
+      >
+        Employee
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const LoginInput = ({ label, value, onChangeText, placeholder, keyboardType, secureTextEntry, mt }: any) => (
+  <View className={mt ? "mt-5" : ""}>
+    <Text className="text-slate-700 mb-2.5 font-semibold text-[14px] ml-1">
+      {label}
+    </Text>
+    <TextInput
+      className="bg-white border border-slate-200 p-4 rounded-2xl text-slate-900 text-[16px] shadow-sm shadow-slate-100"
+      placeholder={placeholder}
+      placeholderTextColor="#94a3b8"
+      value={value}
+      onChangeText={onChangeText}
+      autoCapitalize="none"
+      keyboardType={keyboardType}
+      secureTextEntry={secureTextEntry}
+    />
+  </View>
+);
 
 export default function LoginScreen() {
-  const [selectedRole, setSelectedRole] = useState<"owner" | "employee">(
-    "owner",
-  );
+  const [selectedRole, setSelectedRole] = useState<"owner" | "employee">("owner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const resolveRole = async (uid: string, userEmail: string) => {
-    const ownerByUid = await getDoc(doc(db, "users", uid));
-    if (ownerByUid.exists()) return ownerByUid.data()?.role;
-
-    const ownerByEmail = await getDocs(
-      query(collection(db, "users"), where("email", "==", userEmail), limit(1)),
-    );
-    if (!ownerByEmail.empty) return ownerByEmail.docs[0].data()?.role;
-
-    const empByUid = await getDocs(
-      query(collection(db, "employees"), where("uid", "==", uid), limit(1)),
-    );
-    if (!empByUid.empty) return empByUid.docs[0].data()?.role;
-
-    const empByEmail = await getDocs(
-      query(
-        collection(db, "employees"),
-        where("email", "==", userEmail),
-        limit(1),
-      ),
-    );
-    if (!empByEmail.empty) return empByEmail.docs[0].data()?.role;
-
-    return null;
-  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -85,11 +137,9 @@ export default function LoginScreen() {
         return;
       }
 
-      if (
-        selectedRole === "owner" &&
-        actualRole !== "owner" &&
-        actualRole !== "admin"
-      ) {
+      const isOwnerRole = actualRole === "owner" || actualRole === "admin";
+
+      if (selectedRole === "owner" && !isOwnerRole) {
         await signOut(auth);
         Alert.alert("Login Error", "This account is not an owner account.");
         return;
@@ -102,7 +152,7 @@ export default function LoginScreen() {
       }
 
       router.replace(
-        actualRole === "owner" || actualRole === "admin"
+        isOwnerRole
           ? "/(owner)/(tabs)/dashboard"
           : "/(employee)/(tabs)/dashboard",
       );
@@ -114,104 +164,96 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 justify-center px-8 py-12">
-          <View className="items-center mb-10">
-            <View className="w-24 h-24 bg-blue-100 rounded-full items-center justify-center mb-4">
-              <Text className="text-4xl">🕒</Text>
+    <SafeAreaView>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          className="px-6"
+        >
+          <View className="flex-1 justify-center py-12">
+            {/* Header Section */}
+            <View className="items-center mb-12">
+              <View className="w-24 h-24 bg-indigo-600 rounded-3xl items-center justify-center mb-6 shadow-xl shadow-indigo-200">
+                <Text className="text-4xl text-white">ðŸ•’</Text>
+              </View>
+              <Text
+                className="text-4xl font-bold text-slate-900 tracking-tight"
+              >
+                Attendance<Text className="text-indigo-600">Pro</Text>
+              </Text>
+              <Text className="text-slate-500 mt-2 text-center text-lg font-medium">
+                Manage your workplace with precision
+              </Text>
             </View>
-            <Text className="text-3xl font-bold text-gray-800">
-              AttendancePro
-            </Text>
-            <Text className="text-gray-500 mt-2">
-              Manage your workplace efficiently
-            </Text>
-          </View>
 
-          <View className="flex-row bg-gray-100 rounded-xl p-1 mb-6">
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-lg items-center ${selectedRole === "owner" ? "bg-blue-600" : "bg-transparent"}`}
-              onPress={() => setSelectedRole("owner")}
-            >
-              <Text
-                className={`font-semibold ${selectedRole === "owner" ? "text-white" : "text-gray-600"}`}
-              >
-                Owner
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-lg items-center ${selectedRole === "employee" ? "bg-green-600" : "bg-transparent"}`}
-              onPress={() => setSelectedRole("employee")}
-            >
-              <Text
-                className={`font-semibold ${selectedRole === "employee" ? "text-white" : "text-gray-600"}`}
-              >
-                Employee
-              </Text>
-            </TouchableOpacity>
-          </View>
+            <RoleSwitcher selectedRole={selectedRole} onSelect={setSelectedRole} />
 
-          <View className="space-y-4">
+            {/* Input Fields */}
             <View>
-              <Text className="text-gray-600 mb-2 font-medium">
-                {selectedRole === "owner" ? "Owner Email" : "Employee Email"}
-              </Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-800"
-                placeholder="email@example.com"
+              <LoginInput
+                label={selectedRole === "owner" ? "Owner Email" : "Employee Email"}
                 value={email}
                 onChangeText={setEmail}
-                autoCapitalize="none"
+                placeholder="name@company.com"
                 keyboardType="email-address"
               />
-            </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-600 mb-2 font-medium">Password</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-800"
-                placeholder="••••••••"
+              <LoginInput
+                label="Password"
                 value={password}
                 onChangeText={setPassword}
+                placeholder="Enter your password"
                 secureTextEntry
+                mt
               />
+
+              {/* Action Buttons */}
+              <TouchableOpacity
+                className={`bg-indigo-600 p-5 rounded-2xl mt-10 items-center shadow-lg shadow-indigo-200 ${
+                  loading ? "opacity-70" : ""
+                }`}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-bold text-lg">
+                    Sign In
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {selectedRole === "owner" ? (
+                <View className="flex-row items-center justify-center mt-6">
+                  <Text className="text-slate-500 font-medium">Don't have an account? </Text>
+                  <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+                    <Text className="text-indigo-600 font-bold">Create one</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View className="mt-8 items-center bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                  <Text className="text-amber-800 text-center text-sm font-medium">
+                    Employee accounts are managed by your employer. Contact your owner for access credentials.
+                  </Text>
+                </View>
+              )}
             </View>
 
-            <TouchableOpacity
-              className={`${selectedRole === "owner" ? "bg-blue-600" : "bg-green-600"} p-4 rounded-xl mt-8 items-center ${loading ? "opacity-70" : ""}`}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              <Text className="text-white font-bold text-lg">
-                {loading
-                  ? "Logging in..."
-                  : selectedRole === "owner"
-                    ? "Login as Owner"
-                    : "Login as Employee"}
+            {/* Footer */}
+            <View className="mt-auto pt-10 items-center">
+              <Text className="text-slate-400 text-xs font-semibold tracking-widest uppercase">
+                Powered by AttendancePro v1.0
               </Text>
-            </TouchableOpacity>
-
-            {selectedRole === "owner" ? (
-              <TouchableOpacity
-                className="border border-blue-600 p-4 rounded-xl mt-3 items-center"
-                onPress={() => router.push("/(auth)/signup")}
-              >
-                <Text className="text-blue-600 font-bold text-base">
-                  Create Owner Account
-                </Text>
-              </TouchableOpacity>
-            ) : null}
+            </View>
           </View>
-
-          <View className="mt-10 items-center">
-            <Text className="text-gray-400 text-sm">Design by Antigravity</Text>
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

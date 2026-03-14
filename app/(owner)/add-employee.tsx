@@ -1,6 +1,7 @@
 import { firebaseConfig } from "@/src/config/firebase";
 import { useData } from "@/src/context/DataContext";
 import { useToast } from "@/src/context/ToastContext";
+import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { deleteApp, initializeApp } from "firebase/app";
@@ -20,7 +21,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+import { StatusBar } from "expo-status-bar";
 
 type InputFieldProps = {
   label: string;
@@ -30,6 +32,8 @@ type InputFieldProps = {
   keyboardType?: "default" | "email-address" | "phone-pad" | "numeric";
   secureTextEntry?: boolean;
   maxLength?: number;
+  iconName?: any;
+  error?: string;
 };
 
 function InputField({
@@ -40,19 +44,48 @@ function InputField({
   keyboardType = "default",
   secureTextEntry = false,
   maxLength,
+  iconName,
+  error,
 }: InputFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  
   return (
     <View className="mb-4">
-      <Text className="text-gray-600 mb-2 font-medium">{label}</Text>
-      <TextInput
-        className="bg-white border border-gray-200 p-4 rounded-2xl text-gray-800 shadow-sm"
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        keyboardType={keyboardType}
-        secureTextEntry={secureTextEntry}
-        maxLength={maxLength}
-      />
+      <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">{label}</Text>
+      <View 
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 1,
+          borderRadius: 16,
+          paddingHorizontal: 16,
+          height: 56,
+          borderColor: isFocused ? "#4f46e5" : error ? "#fb7185" : "#e2e8f0",
+          backgroundColor: error ? "#fff1f2" : "white",
+          elevation: isFocused ? 2 : 0
+        }}
+      >
+        {iconName && (
+           <View className="mr-3">
+             <TabBarIcon name={iconName} color={isFocused ? "#4f46e5" : error ? "#fb7185" : "#94a3b8"} size={20} />
+           </View>
+        )}
+        <TextInput
+          className="flex-1 text-[15px] font-medium text-slate-800 h-full"
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#94a3b8"
+          keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry}
+          maxLength={maxLength}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </View>
+      {error ? (
+        <Text className="text-rose-500 text-[12px] font-medium mt-1 ml-1">{error}</Text>
+      ) : null}
     </View>
   );
 }
@@ -69,6 +102,15 @@ const parseDateFromKey = (value: string) => {
   if (!year || !month || !day) return new Date();
   const parsedDate = new Date(year, month - 1, day);
   return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+};
+
+const formatDateDisplay = (dateStr: string) => {
+   const date = parseDateFromKey(dateStr);
+   return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+   });
 };
 
 export default function AddEmployee() {
@@ -125,33 +167,27 @@ export default function AddEmployee() {
       !hourlyRate ||
       !joiningDate
     ) {
-      Alert.alert("Error", "Please fill all fields");
+      showToast("Please fill all required fields", "error");
       return;
     }
 
     if (!phoneRegex.test(trimmedPhone)) {
-      Alert.alert("Invalid Phone", "Phone number must be exactly 10 digits.");
+      showToast("Phone number must be exactly 10 digits", "error");
       return;
     }
 
     if (!emailRegex.test(normalizedEmail)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      showToast("Please enter a valid email address", "error");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert(
-        "Weak Password",
-        "Password must be at least 6 characters long.",
-      );
+      showToast("Password must be at least 6 characters long", "error");
       return;
     }
 
     if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
-      Alert.alert(
-        "Invalid Rate",
-        "Hourly rate must be a valid number greater than 0.",
-      );
+      showToast("Hourly rate must be a valid number greater than 0", "error");
       return;
     }
 
@@ -159,7 +195,7 @@ export default function AddEmployee() {
       !dateRegex.test(joiningDate) ||
       Number.isNaN(new Date(joiningDate).getTime())
     ) {
-      Alert.alert("Invalid Date", "Joining date must be in YYYY-MM-DD format.");
+      showToast("Invalid joining date", "error");
       return;
     }
 
@@ -167,7 +203,7 @@ export default function AddEmployee() {
       (emp: any) => (emp.email || "").toLowerCase() === normalizedEmail,
     );
     if (duplicateEmail) {
-      Alert.alert("Duplicate Email", "This employee email already exists.");
+      showToast("This employee email already exists", "error");
       return;
     }
 
@@ -203,12 +239,12 @@ export default function AddEmployee() {
 
       // Keep owner on this screen so multiple employees can be added quickly.
       setFormData(getInitialFormData());
-      showToast("Employee added successfully!", "success");
+      showToast("Staff member added successfully!", "success");
     } catch (error: any) {
       const code = error?.code || "";
       if (code === "auth/email-already-in-use") {
         showToast(
-          "This email is already registered in Firebase Auth.",
+          "This email is already registered.",
           "error",
         );
       } else if (code === "auth/invalid-email") {
@@ -235,78 +271,102 @@ export default function AddEmployee() {
   };
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
+    <SafeAreaView edges={["top"]}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
+         <View className="flex-row items-center px-6 py-4">
+            <TouchableOpacity 
+               onPress={() => router.back()}
+               style={{ width: 40, height: 40, backgroundColor: "white", borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#e2e8f0", elevation: 1 }}
+            >
+               <TabBarIcon name="arrow-back" color="#0f172a" size={20} />
+            </TouchableOpacity>
+            <View className="ml-4">
+               <Text className="text-xl font-extrabold text-slate-900">New Member</Text>
+               <Text className="text-[13px] text-slate-500 font-medium mt-0.5">Add a new staff to the roster</Text>
+            </View>
+         </View>
+
         <ScrollView
-          className="px-6 py-6"
+          style={{ flex: 1 }}
+          className="px-6 pt-2"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <InputField
-            label="Full Name"
-            value={formData.name}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, name: text }))
-            }
-            placeholder="John Doe"
-          />
-          <InputField
-            label="Phone Number"
-            value={formData.phone}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({
-                ...prev,
-                phone: text.replace(/[^\d]/g, "").slice(0, 10),
-              }))
-            }
-            placeholder="1234567890"
-            keyboardType="phone-pad"
-            maxLength={10}
-          />
-          {formData.phone.length > 0 && formData.phone.length !== 10 ? (
-            <Text className="text-red-500 text-xs -mt-2 mb-3">
-              Phone number must be exactly 10 digits.
-            </Text>
-          ) : null}
-          <InputField
-            label="Email Address"
-            value={formData.email}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, email: text }))
-            }
-            placeholder="john@example.com"
-            keyboardType="email-address"
-          />
-          <InputField
-            label="Password"
-            value={formData.password}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, password: text }))
-            }
-            placeholder="Set password"
-            secureTextEntry
-          />
-          <InputField
-            label="Hourly Rate (₹)"
-            value={formData.hourlyRate}
-            onChangeText={(text: string) =>
-              setFormData((prev) => ({ ...prev, hourlyRate: text }))
-            }
-            placeholder="500"
-            keyboardType="numeric"
-          />
-          <View className="mb-4">
-            <Text className="text-gray-600 mb-2 font-medium">Joining Date</Text>
-            <TouchableOpacity
-              className="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm"
-              onPress={() => setShowJoiningDatePicker(true)}
-              activeOpacity={0.8}
-            >
-              <Text className="text-gray-800">{formData.joiningDate}</Text>
-            </TouchableOpacity>
+          <View className="mb-6">
+             <InputField
+               label="Full Name"
+               iconName="person"
+               value={formData.name}
+               onChangeText={(text: string) =>
+                 setFormData((prev) => ({ ...prev, name: text }))
+               }
+               placeholder="e.g. John Doe"
+             />
+             <InputField
+               label="Phone Number"
+               iconName="call"
+               value={formData.phone}
+               onChangeText={(text: string) =>
+                 setFormData((prev) => ({
+                   ...prev,
+                   phone: text.replace(/[^\d]/g, "").slice(0, 10),
+                 }))
+               }
+               placeholder="10-digit mobile number"
+               keyboardType="phone-pad"
+               maxLength={10}
+               error={formData.phone.length > 0 && formData.phone.length !== 10 ? "Must be exactly 10 digits" : undefined}
+             />
+             <InputField
+               label="Email Address"
+               iconName="mail"
+               value={formData.email}
+               onChangeText={(text: string) =>
+                 setFormData((prev) => ({ ...prev, email: text }))
+               }
+               placeholder="john@example.com"
+               keyboardType="email-address"
+             />
+             <InputField
+               label="Temporary Password"
+               iconName="lock-closed"
+               value={formData.password}
+               onChangeText={(text: string) =>
+                 setFormData((prev) => ({ ...prev, password: text }))
+               }
+               placeholder="At least 6 characters"
+               secureTextEntry
+             />
+
+             <View className="flex-row justify-between mb-4">
+               <View className="flex-1 mr-2">
+                 <InputField
+                   label="Hourly Rate (â‚¹)"
+                   iconName="cash"
+                   value={formData.hourlyRate}
+                   onChangeText={(text: string) =>
+                     setFormData((prev) => ({ ...prev, hourlyRate: text }))
+                   }
+                   placeholder="e.g. 150"
+                   keyboardType="numeric"
+                 />
+               </View>
+               <View className="flex-1 ml-2">
+                 <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Joining Date</Text>
+                  <TouchableOpacity
+                    style={{ flexDirection: "row", alignItems: "center", backgroundColor: "white", borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 16, paddingHorizontal: 16, height: 56 }}
+                    onPress={() => setShowJoiningDatePicker(true)}
+                    activeOpacity={0.8}
+                  >
+                    <TabBarIcon name="calendar" color="#94a3b8" size={20} />
+                    <Text className="text-[14px] font-bold text-slate-800 ml-3">{formatDateDisplay(formData.joiningDate)}</Text>
+                  </TouchableOpacity>
+               </View>
+             </View>
           </View>
 
           {showJoiningDatePicker ? (
@@ -330,22 +390,22 @@ export default function AddEmployee() {
           ) : null}
 
           <TouchableOpacity
-            className={`bg-blue-600 p-4 rounded-2xl mt-4 mb-10 items-center ${loading ? "opacity-70" : ""}`}
+            className={`py-4 rounded-2xl items-center shadow-lg mb-4 ${loading ? "bg-indigo-400" : "bg-indigo-600 shadow-indigo-200"}`}
             onPress={handleSave}
             disabled={loading}
           >
-            <Text className="text-white font-bold text-lg">
-              {loading ? "Adding..." : "Save & Add Another"}
+            <Text className="text-white font-extrabold text-[16px]">
+              {loading ? "Adding Member..." : "Save & Add Another"}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="bg-gray-200 p-4 rounded-2xl -mt-6 mb-10 items-center"
+            className="py-4 rounded-2xl items-center bg-white border border-slate-200 mb-10"
             onPress={() => router.push("/(owner)/(tabs)/employees")}
             disabled={loading}
           >
-            <Text className="text-gray-700 font-bold text-lg">
-              View Employee List
+            <Text className="text-slate-700 font-bold text-[15px]">
+              Cancel
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -353,3 +413,4 @@ export default function AddEmployee() {
     </SafeAreaView>
   );
 }
+

@@ -1,63 +1,70 @@
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Tabs } from "expo-router";
 import React from "react";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
+
+const TabIcon = ({
+  focused,
+  name,
+}: {
+  focused: boolean;
+  name: React.ComponentProps<typeof TabBarIcon>["name"];
+}) => (
+  <View
+    style={{
+      width: focused ? 48 : 40,
+      height: focused ? 48 : 40,
+      backgroundColor: focused ? "#eef2ff" : "transparent",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 16,
+    }}
+  >
+    <TabBarIcon
+      name={name}
+      color={focused ? "#4f46e5" : "#94a3b8"}
+      size={focused ? 24 : 22}
+    />
+    {focused && (
+      <View
+        style={{
+          position: "absolute",
+          bottom: -4,
+          width: 4,
+          height: 4,
+          backgroundColor: "#4f46e5",
+          borderRadius: 2,
+        }}
+      />
+    )}
+  </View>
+);
 
 export default function OwnerTabLayout() {
-  const renderIcon = (
-    focused: boolean,
-    color: string,
-    name:
-      | "home"
-      | "home-outline"
-      | "people"
-      | "people-outline"
-      | "calendar"
-      | "calendar-outline"
-      | "document-text"
-      | "document-text-outline"
-      | "cash"
-      | "cash-outline",
-  ) => (
-    <View
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 19,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: focused ? "#1d4ed8" : "transparent",
-      }}
-    >
-      <TabBarIcon name={name} color={focused ? "#ffffff" : color} />
-    </View>
-  );
-
   return (
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
-        tabBarActiveTintColor: "#ffffff",
-        tabBarInactiveTintColor: "#334155",
+        tabBarActiveTintColor: "#4f46e5",
+        tabBarInactiveTintColor: "#64748b",
         tabBarStyle: {
           position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
+          left: 16,
+          right: 16,
+          bottom: Platform.OS === "ios" ? 24 : 16,
           height: 72,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          backgroundColor: "#eaf2ff",
-          borderTopWidth: 1,
-          borderTopColor: "#bfdbfe",
-          elevation: 12,
-          shadowColor: "#1e3a8a",
-          shadowOpacity: 0.15,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: -2 },
+          borderRadius: 24,
+          backgroundColor: "#ffffff",
+          borderTopWidth: 0,
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          paddingBottom: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 10,
+          height: 72,
         },
         headerShown: false,
       }}
@@ -66,50 +73,48 @@ export default function OwnerTabLayout() {
         name="dashboard"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color, focused }) =>
-            renderIcon(focused, color, focused ? "home" : "home-outline"),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "home" : "home-outline"} />
+          ),
         }}
       />
       <Tabs.Screen
         name="employees"
         options={{
           title: "Employees",
-          tabBarIcon: ({ color, focused }) =>
-            renderIcon(focused, color, focused ? "people" : "people-outline"),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "people" : "people-outline"} />
+          ),
         }}
       />
       <Tabs.Screen
         name="attendance"
         options={{
           title: "Attendance",
-          tabBarIcon: ({ color, focused }) =>
-            renderIcon(
-              focused,
-              color,
-              focused ? "calendar" : "calendar-outline",
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "calendar" : "calendar-outline"} />
+          ),
         }}
       />
       <Tabs.Screen
         name="reports"
         options={{
           title: "Reports",
-          tabBarIcon: ({ color, focused }) =>
-            renderIcon(
-              focused,
-              color,
-              focused ? "document-text" : "document-text-outline",
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "document-text" : "document-text-outline"} />
+          ),
         }}
       />
       <Tabs.Screen
         name="salary"
         options={{
           title: "Salary",
-          tabBarIcon: ({ color, focused }) =>
-            renderIcon(focused, color, focused ? "cash" : "cash-outline"),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "cash" : "cash-outline"} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+

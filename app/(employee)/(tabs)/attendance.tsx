@@ -3,16 +3,16 @@ import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
 import React from "react";
 import { FlatList, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
 
 export default function MyAttendance() {
   const { attendance } = useData();
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-4 rounded-2xl shadow-sm mb-3 border border-gray-100">
-      <View className="flex-row justify-between items-center mb-3">
+    <View style={{ backgroundColor: "white", padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f1f5f9", elevation: 1 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <View>
-          <Text className="text-lg font-bold text-gray-800">
+          <Text style={{ fontSize: 18, fontWeight: "bold", color: "#1e293b" }}>
             {item.date
               ?.toDate()
               .toLocaleDateString("en-IN", {
@@ -21,41 +21,41 @@ export default function MyAttendance() {
                 year: "numeric",
               })}
           </Text>
-          <Text className="text-gray-500 text-sm">Status: Present</Text>
+          <Text style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>Status: Present</Text>
         </View>
-        <View className="bg-green-100 px-3 py-1 rounded-full">
-          <Text className="text-green-700 font-bold text-xs">
+        <View style={{ backgroundColor: "#f0fdf4", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100 }}>
+          <Text style={{ color: "#15803d", fontWeight: "bold", fontSize: 12 }}>
             {formatCurrency(item.totalSalary)}
           </Text>
         </View>
       </View>
 
-      <View className="flex-row bg-gray-50 p-3 rounded-xl">
-        <View className="flex-1">
-          <Text className="text-gray-400 text-[10px] uppercase font-bold">
+      <View style={{ flexDirection: "row", backgroundColor: "#f8fafc", padding: 12, borderRadius: 12 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#94a3b8", fontSize: 10, textTransform: "uppercase", fontWeight: "bold" }}>
             Shift
           </Text>
-          <Text className="text-gray-700 font-bold">{item.shiftHours} hrs</Text>
+          <Text style={{ color: "#334155", fontWeight: "bold" }}>{item.shiftHours} hrs</Text>
         </View>
-        <View className="flex-1">
-          <Text className="text-gray-400 text-[10px] uppercase font-bold">
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#94a3b8", fontSize: 10, textTransform: "uppercase", fontWeight: "bold" }}>
             OT
           </Text>
-          <Text className="text-gray-700 font-bold">{item.otHours} hrs</Text>
+          <Text style={{ color: "#334155", fontWeight: "bold" }}>{item.otHours} hrs</Text>
         </View>
-        <View className="flex-1">
-          <Text className="text-gray-400 text-[10px] uppercase font-bold">
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#94a3b8", fontSize: 10, textTransform: "uppercase", fontWeight: "bold" }}>
             Total
           </Text>
-          <Text className="text-gray-700 font-bold">
+          <Text style={{ color: "#334155", fontWeight: "bold" }}>
             {item.shiftHours + item.otHours} hrs
           </Text>
         </View>
       </View>
 
       {item.remarks ? (
-        <View className="mt-3 border-t border-gray-100 pt-2">
-          <Text className="text-gray-400 text-xs italic">
+        <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: "#f1f5f9", paddingTop: 8 }}>
+          <Text style={{ color: "#94a3b8", fontSize: 12, fontStyle: "italic" }}>
             Notes: {item.remarks}
           </Text>
         </View>
@@ -64,9 +64,9 @@ export default function MyAttendance() {
   );
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-gray-50">
-      <View className="px-6 pt-6 flex-1">
-        <Text className="text-2xl font-bold text-gray-800 mb-6">
+    <SafeAreaView edges={["top"]}>
+      <View style={{ paddingHorizontal: 24, paddingTop: 24, flex: 1 }}>
+        <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1e293b", marginBottom: 24 }}>
           Attendance History
         </Text>
 
@@ -77,9 +77,9 @@ export default function MyAttendance() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center mt-20">
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 }}>
               <TabBarIcon name="calendar-outline" color="#d1d5db" size={80} />
-              <Text className="text-gray-400 mt-4 text-lg">
+              <Text style={{ color: "#94a3b8", marginTop: 16, fontSize: 18 }}>
                 No records found
               </Text>
             </View>
@@ -89,3 +89,4 @@ export default function MyAttendance() {
     </SafeAreaView>
   );
 }
+

@@ -2,41 +2,41 @@ import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useAuth } from "@/src/context/AuthContext";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+
+const InfoRow = ({ icon, label, value }: any) => (
+  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+    <View style={{ width: 40, height: 40, backgroundColor: "#f1f5f9", borderRadius: 20, alignItems: "center", justifyContent: "center", marginRight: 16 }}>
+      <TabBarIcon name={icon} color="#64748b" size={20} />
+    </View>
+    <View>
+      <Text style={{ color: "#94a3b8", fontSize: 10, textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1 }}>
+        {label}
+      </Text>
+      <Text style={{ color: "#1e293b", fontWeight: "600", fontSize: 16, marginTop: 2 }}>{value}</Text>
+    </View>
+  </View>
+);
 
 export default function MyProfile() {
   const { userData, logout } = useAuth();
 
-  const InfoRow = ({ icon, label, value }: any) => (
-    <View className="flex-row items-center mb-6">
-      <View className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center mr-4">
-        <TabBarIcon name={icon} color="#6b7280" size={20} />
-      </View>
-      <View>
-        <Text className="text-gray-400 text-[10px] uppercase font-bold">
-          {label}
-        </Text>
-        <Text className="text-gray-800 font-semibold text-base">{value}</Text>
-      </View>
-    </View>
-  );
-
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-white">
-      <ScrollView className="px-6" showsVerticalScrollIndicator={false}>
-        <View className="items-center mt-10 mb-10">
-          <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-4">
-            <Text className="text-4xl">🧑‍💼</Text>
+    <SafeAreaView edges={["top"]}>
+      <ScrollView style={{ paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
+        <View style={{ alignItems: "center", marginTop: 40, marginBottom: 40 }}>
+          <View style={{ width: 96, height: 96, backgroundColor: "#dcfce7", borderRadius: 48, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <Text style={{ fontSize: 40 }}>👤</Text>
           </View>
-          <Text className="text-2xl font-bold text-gray-800">
+          <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1e293b" }}>
             {userData?.name}
           </Text>
-          <Text className="text-blue-600 font-semibold">
+          <Text style={{ color: "#2563eb", fontWeight: "600", marginTop: 4 }}>
             Employee ID: {userData?.employeeId}
           </Text>
         </View>
 
-        <View className="bg-gray-50 p-6 rounded-3xl mb-8">
+        <View style={{ backgroundColor: "#f8fafc", padding: 24, borderRadius: 32, marginBottom: 32 }}>
           <InfoRow icon="call-outline" label="Phone" value={userData?.phone} />
           <InfoRow icon="mail-outline" label="Email" value={userData?.email} />
           <InfoRow
@@ -53,12 +53,13 @@ export default function MyProfile() {
 
         <TouchableOpacity
           onPress={logout}
-          className="bg-red-50 p-5 rounded-2xl flex-row items-center justify-center mb-10"
+          style={{ backgroundColor: "#fef2f2", padding: 20, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 40 }}
         >
           <TabBarIcon name="log-out-outline" color="#ef4444" size={24} />
-          <Text className="text-red-500 font-bold text-lg ml-2">Logout</Text>
+          <Text style={{ color: "#ef4444", fontWeight: "bold", fontSize: 18, marginLeft: 8 }}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
+

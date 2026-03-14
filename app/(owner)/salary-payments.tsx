@@ -1,6 +1,7 @@
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useData } from "@/src/context/DataContext";
 import { formatCurrency } from "@/src/utils/salary";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
     FlatList,
@@ -9,8 +10,10 @@ import {
     Text,
     TextInput,
     View,
+    TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
+import { StatusBar } from "expo-status-bar";
 
 const parseDate = (value: any) => {
   if (!value) return null;
@@ -32,6 +35,7 @@ const formatDate = (value: any) => {
 
 export default function SalaryPaymentsScreen() {
   const { salaryPayments } = useData();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState("all");
 
@@ -67,59 +71,75 @@ export default function SalaryPaymentsScreen() {
   }, [salaryPayments, search, selectedEmployee]);
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-slate-50">
+    <SafeAreaView edges={["top"]}>
+      <StatusBar style="dark" />
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, paddingVertical: 16 }}>
+         <TouchableOpacity 
+            onPress={() => router.back()}
+            style={{ width: 40, height: 40, backgroundColor: "white", borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#e2e8f0", elevation: 2 }}
+         >
+            <TabBarIcon name="arrow-back" color="#0f172a" size={20} />
+         </TouchableOpacity>
+         <View style={{ marginLeft: 16 }}>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#0f172a" }}>Transaction History</Text>
+            <Text style={{ fontSize: 13, color: "#64748b", fontWeight: "500", marginTop: 2 }}>View all salary payouts</Text>
+         </View>
+      </View>
+
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <View className="mb-4">
-            <Text className="text-[24px] font-bold text-slate-900">
-              Salary Payments
-            </Text>
-
-            <View className="mt-3 rounded-3xl border border-slate-200 bg-white p-4">
-              <View className="flex-row items-center rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                <TabBarIcon name="search" color="#94a3b8" size={18} />
+          <View style={{ marginBottom: 24 }}>
+            <View style={{ marginTop: 8, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", backgroundColor: "white", padding: 20, elevation: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 16, borderWidth: 1, borderColor: "#e2e8f0", backgroundColor: "#f8fafc", paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 }}>
+                <TabBarIcon name="search" color="#94a3b8" size={20} />
                 <TextInput
-                  className="ml-2 flex-1 text-[14px] text-slate-800"
-                  placeholder="Search by employee name"
+                  style={{ marginLeft: 12, flex: 1, fontSize: 15, color: "#1e293b" }}
+                  placeholder="Search by staff member..."
                   placeholderTextColor="#94a3b8"
                   value={search}
                   onChangeText={setSearch}
                 />
               </View>
 
-              <Text className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Employee Filter
+              <Text style={{ fontSize: 11, fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1, color: "#94a3b8", marginBottom: 12, marginLeft: 4 }}>
+                Filter by Member
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row" }}>
                 {employeeChips.map((chip: any) => {
-                  const label = chip === "all" ? "All Employees" : String(chip);
+                  const label = chip === "all" ? "Everyone" : String(chip);
                   const active = selectedEmployee === chip;
                   return (
-                    <Pressable
+                    <TouchableOpacity
                       key={label}
                       onPress={() => setSelectedEmployee(chip)}
-                      className={`mr-2 rounded-full border px-4 py-2.5 ${active ? "border-blue-600 bg-blue-600" : "border-slate-200 bg-white"}`}
+                      style={[
+                        { marginRight: 10, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
+                        active ? { backgroundColor: "#4f46e5", borderColor: "#4f46e5", elevation: 2 } : { backgroundColor: "white", borderColor: "#e2e8f0" }
+                      ]}
                     >
                       <Text
-                        className={`text-[13px] font-semibold ${active ? "text-white" : "text-slate-700"}`}
+                        style={{ fontSize: 12, fontWeight: "bold", color: active ? "white" : "#475569" }}
                       >
                         {label}
                       </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                   );
                 })}
               </ScrollView>
             </View>
 
-            <View className="mt-3 flex-row items-center justify-between px-1">
-              <Text className="text-[14px] font-semibold text-slate-700">
-                {rows.length} records
+            <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 }}>
+              <Text style={{ fontSize: 13, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1 }}>
+                {rows.length} {rows.length === 1 ? 'Record' : 'Records'}
               </Text>
-              <Text className="text-[12px] text-slate-500">Latest first</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                 <TabBarIcon name="filter" color="#94a3b8" size={14} />
+                 <Text style={{ fontSize: 12, fontWeight: "500", color: "#64748b", marginLeft: 4 }}>Latest first</Text>
+              </View>
             </View>
           </View>
         }
@@ -127,66 +147,55 @@ export default function SalaryPaymentsScreen() {
           const periodLabel = `${formatDate(item.fromDate)} - ${formatDate(item.toDate)}`;
           const paidDate = formatDate(item.paymentDate);
           const status = String(item.paymentStatus || "unpaid").toLowerCase();
+          const isPaid = status === "paid";
 
           return (
-            <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-4">
-              <Text className="text-[17px] font-semibold text-slate-900">
-                {item.employeeName || "Employee"}
-              </Text>
-
-              <View className="mt-3 flex-row items-center justify-between">
-                <Text className="text-[13px] text-slate-500">Period</Text>
-                <Text className="text-[14px] font-semibold text-slate-700">
-                  {periodLabel}
-                </Text>
+            <View style={{ marginBottom: 16, borderRadius: 24, borderWidth: 1, borderColor: "#f1f5f9", backgroundColor: "white", padding: 20, elevation: 1 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                 <Text style={{ fontSize: 16, fontWeight: "900", color: "#0f172a" }}>
+                   {item.employeeName || "Member"}
+                 </Text>
+                 <View style={[{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 100, borderWidth: 1 }, isPaid ? { backgroundColor: "#ecfdf5", borderColor: "#d1fae5" } : { backgroundColor: "#fffbeb", borderColor: "#fef3c7" }]}>
+                   <Text style={[{ fontSize: 10, textTransform: "uppercase", fontWeight: "bold", letterSpacing: 0.5 }, isPaid ? { color: "#059669" } : { color: "#d97706" }]}>
+                     {isPaid ? "Settled" : "Unpaid"}
+                   </Text>
+                 </View>
               </View>
 
-              <View className="mt-2 flex-row items-center justify-between">
-                <Text className="text-[13px] text-slate-500">Amount</Text>
-                <Text className="text-[15px] font-semibold text-emerald-700">
-                  {formatCurrency(
-                    Number(item.paidAmount ?? item.totalSalary ?? 0),
-                  )}
-                </Text>
+              <View style={{ marginBottom: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, marginHorizontal: -4, paddingHorizontal: 4, paddingBottom: 12, borderBottomColor: "#f8fafc" }}>
+                 <View>
+                    <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Period</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "500", color: "#334155" }}>
+                      {periodLabel}
+                    </Text>
+                 </View>
               </View>
 
-              <View className="mt-2 flex-row items-center justify-between">
-                <Text className="text-[13px] text-slate-500">Paid on</Text>
-                <Text className="text-[14px] text-slate-700">{paidDate}</Text>
-              </View>
-
-              <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-slate-50 px-3 py-2.5">
-                <View className="flex-row items-center">
-                  <TabBarIcon
-                    name={
-                      status === "paid"
-                        ? "checkmark-circle-outline"
-                        : "alert-circle-outline"
-                    }
-                    color={status === "paid" ? "#059669" : "#ea580c"}
-                    size={16}
-                  />
-                  <Text className="ml-1 text-[12px] text-slate-500">
-                    Payment Status
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <View>
+                  <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Amount</Text>
+                  <Text style={{ fontSize: 18, fontWeight: "900", color: "#4f46e5" }}>
+                    {formatCurrency(Number(item.paidAmount ?? item.totalSalary ?? 0))}
                   </Text>
                 </View>
-                <Text
-                  className={`text-[13px] font-semibold ${status === "paid" ? "text-emerald-700" : "text-orange-700"}`}
-                >
-                  {status === "paid" ? "Paid" : "Unpaid"}
-                </Text>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={{ fontSize: 11, fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Released On</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "500", color: "#475569" }}>{paidDate}</Text>
+                </View>
               </View>
             </View>
           );
         }}
         ListEmptyComponent={
-          <View className="mt-6 items-center rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-10">
-            <TabBarIcon name="receipt-outline" color="#cbd5e1" size={44} />
-            <Text className="mt-2 text-[15px] font-semibold text-slate-700">
-              No salary payment records yet
+          <View style={{ marginTop: 24, alignItems: "center", borderRadius: 24, borderStyle: "dashed", borderWidth: 1, borderColor: "#e2e8f0", backgroundColor: "#f8fafc", paddingHorizontal: 24, paddingVertical: 48 }}>
+            <View style={{ backgroundColor: "white", width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#f1f5f9", marginBottom: 16, elevation: 1 }}>
+               <TabBarIcon name="receipt-outline" color="#94a3b8" size={28} />
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: "bold", color: "#334155" }}>
+              No Transactions Found
             </Text>
-            <Text className="mt-1 text-center text-[13px] text-slate-500">
-              Try another employee or search term.
+            <Text style={{ marginTop: 4, textAlign: "center", fontSize: 13, color: "#64748b", fontWeight: "500" }}>
+              Try adjusting your filters or search term.
             </Text>
           </View>
         }
@@ -194,3 +203,4 @@ export default function SalaryPaymentsScreen() {
     </SafeAreaView>
   );
 }
+
