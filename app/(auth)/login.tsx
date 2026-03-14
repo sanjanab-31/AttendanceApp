@@ -51,32 +51,70 @@ const resolveRole = async (uid: string, userEmail: string) => {
   return null;
 };
 
-const RoleSwitcher = ({ selectedRole, onSelect }: { selectedRole: string; onSelect: (role: "owner" | "employee") => void }) => (
-  <View className="bg-slate-200/50 rounded-2xl p-1.5 flex-row mb-8">
+const RoleSwitcher = ({
+  selectedRole,
+  onSelect,
+}: {
+  selectedRole: string;
+  onSelect: (role: "owner" | "employee") => void;
+}) => (
+  <View
+    style={{
+      backgroundColor: "rgba(226, 232, 240, 0.5)",
+      borderRadius: 16,
+      padding: 6,
+      flexDirection: "row",
+      marginBottom: 32,
+    }}
+  >
     <TouchableOpacity
       onPress={() => onSelect("owner")}
-      className={`flex-1 py-3.5 rounded-xl items-center ${
-        selectedRole === "owner" ? "bg-white shadow-sm" : ""
-      }`}
+      activeOpacity={0.7}
+      style={{
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: "center",
+        backgroundColor: selectedRole === "owner" ? "white" : "transparent",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: selectedRole === "owner" ? 0.05 : 0,
+        shadowRadius: 2,
+        elevation: selectedRole === "owner" ? 2 : 0,
+      }}
     >
       <Text
-        className={`font-bold text-[15px] ${
-          selectedRole === "owner" ? "text-indigo-600" : "text-slate-500"
-        }`}
+        style={{
+          fontWeight: "bold",
+          fontSize: 15,
+          color: selectedRole === "owner" ? "#4f46e5" : "#64748b",
+        }}
       >
         Owner
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={() => onSelect("employee")}
-      className={`flex-1 py-3.5 rounded-xl items-center ${
-        selectedRole === "employee" ? "bg-white shadow-sm" : ""
-      }`}
+      activeOpacity={0.7}
+      style={{
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: "center",
+        backgroundColor: selectedRole === "employee" ? "white" : "transparent",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: selectedRole === "employee" ? 0.05 : 0,
+        shadowRadius: 2,
+        elevation: selectedRole === "employee" ? 2 : 0,
+      }}
     >
       <Text
-        className={`font-bold text-[15px] ${
-          selectedRole === "employee" ? "text-indigo-600" : "text-slate-500"
-        }`}
+        style={{
+          fontWeight: "bold",
+          fontSize: 15,
+          color: selectedRole === "employee" ? "#4f46e5" : "#64748b",
+        }}
       >
         Employee
       </Text>
@@ -84,13 +122,42 @@ const RoleSwitcher = ({ selectedRole, onSelect }: { selectedRole: string; onSele
   </View>
 );
 
-const LoginInput = ({ label, value, onChangeText, placeholder, keyboardType, secureTextEntry, mt }: any) => (
-  <View className={mt ? "mt-5" : ""}>
-    <Text className="text-slate-700 mb-2.5 font-semibold text-[14px] ml-1">
+const LoginInput = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+  secureTextEntry,
+  mt,
+}: any) => (
+  <View style={{ marginTop: mt ? 20 : 0 }}>
+    <Text
+      style={{
+        color: "#334155",
+        marginBottom: 10,
+        fontWeight: "600",
+        fontSize: 14,
+        marginLeft: 4,
+      }}
+    >
       {label}
     </Text>
     <TextInput
-      className="bg-white border border-slate-200 p-4 rounded-2xl text-slate-900 text-[16px] shadow-sm shadow-slate-100"
+      style={{
+        backgroundColor: "white",
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
+        padding: 16,
+        borderRadius: 16,
+        color: "#0f172a",
+        fontSize: 16,
+        shadowColor: "#f1f5f9",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 2,
+        elevation: 2,
+      }}
       placeholder={placeholder}
       placeholderTextColor="#94a3b8"
       value={value}
@@ -103,7 +170,9 @@ const LoginInput = ({ label, value, onChangeText, placeholder, keyboardType, sec
 );
 
 export default function LoginScreen() {
-  const [selectedRole, setSelectedRole] = useState<"owner" | "employee">("owner");
+  const [selectedRole, setSelectedRole] = useState<"owner" | "employee">(
+    "owner",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -168,35 +237,68 @@ export default function LoginScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
-          className="px-6"
+          style={{ paddingHorizontal: 24 }}
         >
-          <View className="flex-1 justify-center py-12">
+          <View style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}>
             {/* Header Section */}
-            <View className="items-center mb-12">
-              <View className="w-24 h-24 bg-indigo-600 rounded-3xl items-center justify-center mb-6 shadow-xl shadow-indigo-200">
-                <Text className="text-4xl text-white">ðŸ•’</Text>
+            <View style={{ alignItems: "center", marginBottom: 48 }}>
+              <View
+                style={{
+                  width: 96,
+                  height: 96,
+                  backgroundColor: "#4f46e5",
+                  borderRadius: 24,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 24,
+                  shadowColor: "#4f46e5",
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 20,
+                  elevation: 10,
+                }}
+              >
+                <Text style={{ fontSize: 40, color: "white" }}>🕒</Text>
               </View>
               <Text
-                className="text-4xl font-bold text-slate-900 tracking-tight"
+                style={{
+                  fontSize: 36,
+                  fontWeight: "bold",
+                  color: "#0f172a",
+                  letterSpacing: -0.5,
+                }}
               >
-                Attendance<Text className="text-indigo-600">Pro</Text>
+                Attendance<Text style={{ color: "#4f46e5" }}>Pro</Text>
               </Text>
-              <Text className="text-slate-500 mt-2 text-center text-lg font-medium">
+              <Text
+                style={{
+                  color: "#64748b",
+                  marginTop: 8,
+                  textAlign: "center",
+                  fontSize: 18,
+                  fontWeight: "500",
+                }}
+              >
                 Manage your workplace with precision
               </Text>
             </View>
 
-            <RoleSwitcher selectedRole={selectedRole} onSelect={setSelectedRole} />
+            <RoleSwitcher
+              selectedRole={selectedRole}
+              onSelect={setSelectedRole}
+            />
 
             {/* Input Fields */}
             <View>
               <LoginInput
-                label={selectedRole === "owner" ? "Owner Email" : "Employee Email"}
+                label={
+                  selectedRole === "owner" ? "Owner Email" : "Employee Email"
+                }
                 value={email}
                 onChangeText={setEmail}
                 placeholder="name@company.com"
@@ -214,40 +316,91 @@ export default function LoginScreen() {
 
               {/* Action Buttons */}
               <TouchableOpacity
-                className={`bg-indigo-600 p-5 rounded-2xl mt-10 items-center shadow-lg shadow-indigo-200 ${
-                  loading ? "opacity-70" : ""
-                }`}
+                style={{
+                  backgroundColor: "#4f46e5",
+                  padding: 20,
+                  borderRadius: 16,
+                  marginTop: 40,
+                  alignItems: "center",
+                  shadowColor: "#4f46e5",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: 4,
+                  opacity: loading ? 0.7 : 1,
+                }}
                 onPress={handleLogin}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-lg">
+                  <Text
+                    style={{ color: "white", fontWeight: "bold", fontSize: 18 }}
+                  >
                     Sign In
                   </Text>
                 )}
               </TouchableOpacity>
 
               {selectedRole === "owner" ? (
-                <View className="flex-row items-center justify-center mt-6">
-                  <Text className="text-slate-500 font-medium">Don't have an account? </Text>
-                  <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-                    <Text className="text-indigo-600 font-bold">Create one</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 24,
+                  }}
+                >
+                  <Text style={{ color: "#64748b", fontWeight: "500" }}>
+                    Don't have an account?{" "}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/(auth)/signup")}
+                  >
+                    <Text style={{ color: "#4f46e5", fontWeight: "bold" }}>
+                      Create one
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
-                <View className="mt-8 items-center bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                  <Text className="text-amber-800 text-center text-sm font-medium">
-                    Employee accounts are managed by your employer. Contact your owner for access credentials.
+                <View
+                  style={{
+                    marginTop: 32,
+                    alignItems: "center",
+                    backgroundColor: "#fffbeb",
+                    padding: 16,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "#fef3c7",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#92400e",
+                      textAlign: "center",
+                      fontSize: 14,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Employee accounts are managed by your employer. Contact your
+                    owner for access credentials.
                   </Text>
                 </View>
               )}
             </View>
 
             {/* Footer */}
-            <View className="mt-auto pt-10 items-center">
-              <Text className="text-slate-400 text-xs font-semibold tracking-widest uppercase">
+            <View style={{ marginTop: "auto", paddingTop: 40, alignItems: "center" }}>
+              <Text
+                style={{
+                  color: "#94a3b8",
+                  fontSize: 12,
+                  fontWeight: "600",
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}
+              >
                 Powered by AttendancePro v1.0
               </Text>
             </View>

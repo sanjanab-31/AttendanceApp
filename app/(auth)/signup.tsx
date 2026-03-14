@@ -17,11 +17,42 @@ import {
 import { SafeAreaView } from "@/components/ui/SafeAreaView";
 import { StatusBar } from "expo-status-bar";
 
-const SignupInput = ({ label, value, onChangeText, placeholder, secureTextEntry, mt, keyboardType }: any) => (
-  <View className={mt ? "mt-5" : ""}>
-    <Text className="text-slate-700 mb-2.5 font-semibold text-[14px] ml-1">{label}</Text>
+const SignupInput = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  mt,
+  keyboardType,
+}: any) => (
+  <View style={{ marginTop: mt ? 20 : 0 }}>
+    <Text
+      style={{
+        color: "#334155",
+        marginBottom: 10,
+        fontWeight: "600",
+        fontSize: 14,
+        marginLeft: 4,
+      }}
+    >
+      {label}
+    </Text>
     <TextInput
-      className="bg-white border border-slate-200 p-4 rounded-2xl text-slate-900 text-[16px] shadow-sm shadow-slate-100"
+      style={{
+        backgroundColor: "white",
+        borderWidth: 1,
+        borderColor: "#e2e8f0",
+        padding: 16,
+        borderRadius: 16,
+        color: "#0f172a",
+        fontSize: 16,
+        shadowColor: "#f1f5f9",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 2,
+        elevation: 2,
+      }}
       placeholder={placeholder}
       placeholderTextColor="#94a3b8"
       value={value}
@@ -80,23 +111,53 @@ export default function OwnerSignupScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
-          className="px-6"
+          style={{ paddingHorizontal: 24 }}
         >
-          <View className="flex-1 justify-center py-12">
+          <View style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}>
             {/* Header Section */}
-            <View className="items-center mb-10">
-              <View className="w-24 h-24 bg-indigo-600 rounded-3xl items-center justify-center mb-6 shadow-xl shadow-indigo-200">
-                <Text className="text-4xl">ðŸ‘¤</Text>
+            <View style={{ alignItems: "center", marginBottom: 40 }}>
+              <View
+                style={{
+                  width: 96,
+                  height: 96,
+                  backgroundColor: "#4f46e5",
+                  borderRadius: 24,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 24,
+                  shadowColor: "#4f46e5",
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 20,
+                  elevation: 10,
+                }}
+              >
+                <Text style={{ fontSize: 40 }}>👤</Text>
               </View>
-              <Text className="text-4xl font-bold text-slate-900 tracking-tight">
-                Owner <Text className="text-indigo-600">Signup</Text>
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: "bold",
+                  color: "#0f172a",
+                  letterSpacing: -0.5,
+                }}
+              >
+                Owner <Text style={{ color: "#4f46e5" }}>Signup</Text>
               </Text>
-              <Text className="text-slate-500 mt-2 text-center text-lg font-medium">
+              <Text
+                style={{
+                  color: "#64748b",
+                  marginTop: 8,
+                  textAlign: "center",
+                  fontSize: 18,
+                  fontWeight: "500",
+                }}
+              >
                 Create your administrative account
               </Text>
             </View>
@@ -129,36 +190,60 @@ export default function OwnerSignupScreen() {
               />
 
               <TouchableOpacity
-                className={`bg-indigo-600 p-5 rounded-2xl mt-10 items-center shadow-lg shadow-indigo-200 ${
-                  loading ? "opacity-70" : ""
-                }`}
+                style={{
+                  backgroundColor: "#4f46e5",
+                  padding: 20,
+                  borderRadius: 16,
+                  marginTop: 40,
+                  alignItems: "center",
+                  shadowColor: "#4f46e5",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: 4,
+                  opacity: loading ? 0.7 : 1,
+                }}
                 onPress={handleSignup}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-lg">
+                  <Text
+                    style={{ color: "white", fontWeight: "bold", fontSize: 18 }}
+                  >
                     Create Account
                   </Text>
                 )}
               </TouchableOpacity>
             </View>
 
-            <View className="mt-8 items-center">
-              <View className="flex-row items-center">
-                <Text className="text-slate-500 font-medium">Already have an account? </Text>
+            <View style={{ marginTop: 32, alignItems: "center" }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ color: "#64748b", fontWeight: "500" }}>
+                  Already have an account?{" "}
+                </Text>
                 <Link href="/(auth)/login" asChild>
                   <TouchableOpacity>
-                    <Text className="text-indigo-600 font-bold">Sign In</Text>
+                    <Text style={{ color: "#4f46e5", fontWeight: "bold" }}>
+                      Sign In
+                    </Text>
                   </TouchableOpacity>
                 </Link>
               </View>
             </View>
 
             {/* Footer */}
-            <View className="mt-auto pt-10 items-center">
-              <Text className="text-slate-400 text-xs font-semibold tracking-widest uppercase">
+            <View style={{ marginTop: "auto", paddingTop: 40, alignItems: "center" }}>
+              <Text
+                style={{
+                  color: "#94a3b8",
+                  fontSize: 12,
+                  fontWeight: "600",
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}
+              >
                 Step 1 of 2: Profile Creation
               </Text>
             </View>

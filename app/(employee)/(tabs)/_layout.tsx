@@ -12,18 +12,14 @@ const TabIcon = ({
 }) => (
   <View
     style={{
-      width: 48,
-      height: 48,
-      backgroundColor: focused ? "#eef2ff" : "transparent",
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 16,
     }}
   >
     <TabBarIcon
       name={name}
       color={focused ? "#4f46e5" : "#94a3b8"}
-      size={24}
+      size={26}
     />
   </View>
 );
@@ -33,20 +29,22 @@ export default function EmployeeTabLayout() {
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
+        tabBarActiveTintColor: "#4f46e5",
+        tabBarInactiveTintColor: "#64748b",
         tabBarStyle: {
-          position: "absolute",
-          height: Platform.OS === 'ios' ? 88 : 72,
+          height: Platform.OS === 'ios' ? 88 : 70,
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
-          borderTopColor: "#f1f5f9",
+          borderTopColor: "#e2e8f0",
           elevation: 16,
           shadowColor: "#0f172a",
-          shadowOpacity: 0.06,
-          shadowRadius: 16,
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
           shadowOffset: { width: 0, height: -4 },
         },
         tabBarItemStyle: {
-          paddingVertical: 10,
+          justifyContent: "center",
+          alignItems: "center",
         },
         headerShown: false,
       }}
@@ -56,7 +54,7 @@ export default function EmployeeTabLayout() {
         options={{
           title: "Dashboard",
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? "home" : "home-outline"} />
+            <TabIcon focused={focused} name={focused ? "grid" : "grid-outline"} />
           ),
         }}
       />
@@ -74,7 +72,7 @@ export default function EmployeeTabLayout() {
         options={{
           title: "Salary",
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? "wallet" : "wallet-outline"} />
+            <TabIcon focused={focused} name={focused ? "card" : "card-outline"} />
           ),
         }}
       />

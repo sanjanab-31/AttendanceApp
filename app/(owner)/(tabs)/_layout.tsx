@@ -12,31 +12,15 @@ const TabIcon = ({
 }) => (
   <View
     style={{
-      width: focused ? 48 : 40,
-      height: focused ? 48 : 40,
-      backgroundColor: focused ? "#eef2ff" : "transparent",
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: 16,
     }}
   >
     <TabBarIcon
       name={name}
       color={focused ? "#4f46e5" : "#94a3b8"}
-      size={focused ? 24 : 22}
+      size={26}
     />
-    {focused && (
-      <View
-        style={{
-          position: "absolute",
-          bottom: -4,
-          width: 4,
-          height: 4,
-          backgroundColor: "#4f46e5",
-          borderRadius: 2,
-        }}
-      />
-    )}
   </View>
 );
 
@@ -48,23 +32,19 @@ export default function OwnerTabLayout() {
         tabBarActiveTintColor: "#4f46e5",
         tabBarInactiveTintColor: "#64748b",
         tabBarStyle: {
-          position: "absolute",
-          left: 16,
-          right: 16,
-          bottom: Platform.OS === "ios" ? 24 : 16,
-          height: 72,
-          borderRadius: 24,
+          height: Platform.OS === "ios" ? 88 : 70,
           backgroundColor: "#ffffff",
-          borderTopWidth: 0,
-          elevation: 8,
-          shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 4 },
-          paddingBottom: 0,
+          borderTopWidth: 1,
+          borderTopColor: "#e2e8f0",
+          elevation: 16,
+          shadowColor: "#0f172a",
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: -4 },
         },
         tabBarItemStyle: {
-          height: 72,
+          justifyContent: "center",
+          alignItems: "center",
         },
         headerShown: false,
       }}
@@ -74,7 +54,7 @@ export default function OwnerTabLayout() {
         options={{
           title: "Dashboard",
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? "home" : "home-outline"} />
+            <TabIcon focused={focused} name={focused ? "grid" : "grid-outline"} />
           ),
         }}
       />
@@ -97,20 +77,20 @@ export default function OwnerTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="reports"
-        options={{
-          title: "Reports",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? "document-text" : "document-text-outline"} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="salary"
         options={{
           title: "Salary",
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? "cash" : "cash-outline"} />
+            <TabIcon focused={focused} name={focused ? "card" : "card-outline"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{
+          title: "Reports",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? "bar-chart" : "bar-chart-outline"} />
           ),
         }}
       />
