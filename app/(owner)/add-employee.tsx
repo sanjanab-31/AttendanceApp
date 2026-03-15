@@ -271,7 +271,7 @@ export default function AddEmployee() {
   };
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

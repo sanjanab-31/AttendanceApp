@@ -71,7 +71,7 @@ export default function SalaryPaymentsScreen() {
   }, [salaryPayments, search, selectedEmployee]);
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, paddingVertical: 16 }}>
          <TouchableOpacity 

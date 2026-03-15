@@ -119,7 +119,7 @@ export default function Reports() {
       : toDate || fromDate || new Date();
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: "#ffffff", paddingTop: insets.top }}>
       <StatusBar style="dark" />
       <ScrollView 
         style={{ flex: 1 }} 

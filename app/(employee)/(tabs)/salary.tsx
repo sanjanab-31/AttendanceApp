@@ -53,7 +53,7 @@ export default function MySalary() {
   const totalSalary = shiftSalary + otSalary + totalBonus;
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <ScrollView style={{ paddingHorizontal: 24, paddingTop: 24 }} showsVerticalScrollIndicator={false}>
         <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1e293b", marginBottom: 24 }}>
           Salary Breakdown
@@ -91,7 +91,7 @@ export default function MySalary() {
           />
         </View>
 
-        <View style={{ backgroundColor: "#f0fdf4", padding: 24, borderRadius: 32, borderWidth: 1, borderColor: "#dcfce7" }}>
+        <View style={{ backgroundColor: "#f0fdf4", padding: 24, borderRadius: 32, borderWidth: 1, borderColor: "#dcfce7", marginBottom: 80 }}>
           <Text style={{ color: "#166534", fontWeight: "bold", marginBottom: 8 }}>Salary Policy</Text>
           <Text style={{ color: "#16a34a", fontSize: 14, lineHeight: 20 }}>
             Your salary is calculated based on your hourly rate of{" "}

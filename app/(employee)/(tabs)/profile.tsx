@@ -36,7 +36,7 @@ export default function MyProfile() {
           </Text>
         </View>
 
-        <View style={{ backgroundColor: "#f8fafc", padding: 24, borderRadius: 32, marginBottom: 32 }}>
+        <View style={{ backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#e2e8f0", padding: 24, borderRadius: 32, marginBottom: 32, elevation: 1 }}>
           <InfoRow icon="call-outline" label="Phone" value={userData?.phone} />
           <InfoRow icon="mail-outline" label="Email" value={userData?.email} />
           <InfoRow

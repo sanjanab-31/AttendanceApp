@@ -439,7 +439,7 @@ export default function SalarySummary() {
   };
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: "#ffffff", paddingTop: insets.top }}>
       <StatusBar style="dark" />
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24 }}>
         <Text style={{ fontSize: 30, fontWeight: "900", color: "#0f172a", marginBottom: 24 }}>

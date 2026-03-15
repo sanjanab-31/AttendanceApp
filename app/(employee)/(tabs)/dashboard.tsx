@@ -56,9 +56,9 @@ export default function EmployeeDashboard() {
     .reduce((acc: number, b: any) => acc + (b.bonusAmount || 0), 0);
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <ScrollView style={{ paddingHorizontal: 20, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: "white", borderRadius: 24, padding: 20, borderWidth: 1, borderColor: "#dbeafe", marginBottom: 16 }}>
+        <View style={{ backgroundColor: "white", borderRadius: 24, padding: 20, borderWidth: 1, borderColor: "#e2e8f0", marginBottom: 16 }}>
           <Text style={{ color: "#3b82f6", fontSize: 12 }}>EMPLOYEE PORTAL</Text>
           <Text style={{ fontSize: 24, fontWeight: "900", color: "#082f49", marginTop: 4 }}>
             {userData?.name || "Employee"}
@@ -104,7 +104,7 @@ export default function EmployeeDashboard() {
           />
         </View>
 
-        <View style={{ backgroundColor: "white", borderRadius: 24, padding: 16, borderWidth: 1, borderColor: "#dbeafe", marginBottom: 96 }}>
+        <View style={{ backgroundColor: "white", borderRadius: 24, padding: 16, borderWidth: 1, borderColor: "#e2e8f0", marginBottom: 96 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <Text style={{ color: "#082f49", fontSize: 16, fontWeight: "bold" }}>
               Recent Attendance

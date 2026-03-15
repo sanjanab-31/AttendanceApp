@@ -38,7 +38,7 @@ export default function MyBonus() {
   );
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View style={{ paddingHorizontal: 24, paddingTop: 24, flex: 1 }}>
         <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1e293b", marginBottom: 24 }}>
           My Bonuses

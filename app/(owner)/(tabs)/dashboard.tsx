@@ -179,7 +179,7 @@ export default function OwnerDashboard() {
     : [];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fafbfc" }}>
+    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       
       {/* Refined Header */}
