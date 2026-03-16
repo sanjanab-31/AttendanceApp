@@ -91,7 +91,7 @@ export default function MySalary() {
           />
         </View>
 
-        <View style={{ backgroundColor: "#f0fdf4", padding: 24, borderRadius: 32, borderWidth: 1, borderColor: "#dcfce7", marginBottom: 80 }}>
+        <View style={{ backgroundColor: "#f0fdf4", padding: 24, borderRadius: 32, borderWidth: 1, borderColor: "#dcfce7" }}>
           <Text style={{ color: "#166534", fontWeight: "bold", marginBottom: 8 }}>Salary Policy</Text>
           <Text style={{ color: "#16a34a", fontSize: 14, lineHeight: 20 }}>
             Your salary is calculated based on your hourly rate of{" "}

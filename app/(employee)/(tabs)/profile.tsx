@@ -22,7 +22,7 @@ export default function MyProfile() {
   const { userData, logout } = useAuth();
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <ScrollView style={{ paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
         <View style={{ alignItems: "center", marginTop: 40, marginBottom: 40 }}>
           <View style={{ width: 96, height: 96, backgroundColor: "#dcfce7", borderRadius: 48, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
@@ -36,7 +36,7 @@ export default function MyProfile() {
           </Text>
         </View>
 
-        <View style={{ backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#e2e8f0", padding: 24, borderRadius: 32, marginBottom: 32, elevation: 1 }}>
+        <View style={{ backgroundColor: "#f8fafc", padding: 24, borderRadius: 32, marginBottom: 32 }}>
           <InfoRow icon="call-outline" label="Phone" value={userData?.phone} />
           <InfoRow icon="mail-outline" label="Email" value={userData?.email} />
           <InfoRow

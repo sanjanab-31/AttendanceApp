@@ -144,7 +144,7 @@ export default function BonusManagement() {
   };
 
   return (
-    <SafeAreaView edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       <View className="flex-row items-center px-6 py-4">
          <TouchableOpacity 
