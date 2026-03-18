@@ -1,29 +1,29 @@
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
 import { auth, db } from "@/src/config/firebase";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  query,
-  where,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    query,
+    where,
 } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "@/components/ui/SafeAreaView";
-import { StatusBar } from "expo-status-bar";
 
 const resolveRole = async (uid: string, userEmail: string) => {
   const ownerByUid = await getDoc(doc(db, "users", uid));
@@ -51,122 +51,137 @@ const resolveRole = async (uid: string, userEmail: string) => {
   return null;
 };
 
-const RoleSwitcher = ({
-  selectedRole,
-  onSelect,
-}: {
-  selectedRole: string;
-  onSelect: (role: "owner" | "employee") => void;
-}) => (
-  <View
-    style={{
-      backgroundColor: "rgba(226, 232, 240, 0.5)",
-      borderRadius: 16,
-      padding: 6,
-      flexDirection: "row",
-      marginBottom: 32,
-    }}
-  >
-    <TouchableOpacity
-      onPress={() => onSelect("owner")}
-      activeOpacity={0.7}
+const RoleSwitcher = React.memo(
+  ({
+    selectedRole,
+    onSelect,
+  }: {
+    selectedRole: string;
+    onSelect: (role: "owner" | "employee") => void;
+  }) => (
+    <View
       style={{
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: "center",
-        backgroundColor: selectedRole === "owner" ? "white" : "transparent",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: selectedRole === "owner" ? 0.05 : 0,
-        shadowRadius: 2,
-        elevation: selectedRole === "owner" ? 2 : 0,
+        backgroundColor: "rgba(226, 232, 240, 0.5)",
+        borderRadius: 16,
+        padding: 6,
+        flexDirection: "row",
+        marginBottom: 32,
       }}
     >
-      <Text
+      <TouchableOpacity
+        onPress={() => onSelect("owner")}
+        activeOpacity={0.7}
         style={{
-          fontWeight: "bold",
-          fontSize: 15,
-          color: selectedRole === "owner" ? "#4f46e5" : "#64748b",
+          flex: 1,
+          paddingVertical: 14,
+          borderRadius: 12,
+          alignItems: "center",
+          backgroundColor: selectedRole === "owner" ? "white" : "transparent",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: selectedRole === "owner" ? 0.05 : 0,
+          shadowRadius: 2,
+          elevation: selectedRole === "owner" ? 2 : 0,
         }}
       >
-        Owner
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={() => onSelect("employee")}
-      activeOpacity={0.7}
-      style={{
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: "center",
-        backgroundColor: selectedRole === "employee" ? "white" : "transparent",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: selectedRole === "employee" ? 0.05 : 0,
-        shadowRadius: 2,
-        elevation: selectedRole === "employee" ? 2 : 0,
-      }}
-    >
-      <Text
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 15,
+            color: selectedRole === "owner" ? "#4f46e5" : "#64748b",
+          }}
+        >
+          Owner
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => onSelect("employee")}
+        activeOpacity={0.7}
         style={{
-          fontWeight: "bold",
-          fontSize: 15,
-          color: selectedRole === "employee" ? "#4f46e5" : "#64748b",
+          flex: 1,
+          paddingVertical: 14,
+          borderRadius: 12,
+          alignItems: "center",
+          backgroundColor:
+            selectedRole === "employee" ? "white" : "transparent",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: selectedRole === "employee" ? 0.05 : 0,
+          shadowRadius: 2,
+          elevation: selectedRole === "employee" ? 2 : 0,
         }}
       >
-        Employee
-      </Text>
-    </TouchableOpacity>
-  </View>
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 15,
+            color: selectedRole === "employee" ? "#4f46e5" : "#64748b",
+          }}
+        >
+          Employee
+        </Text>
+      </TouchableOpacity>
+    </View>
+  ),
 );
 
-const LoginInput = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  keyboardType,
-  secureTextEntry,
-  mt,
-}: any) => (
-  <View style={{ marginTop: mt ? 20 : 0 }}>
-    <Text
-      style={{
-        color: "#334155",
-        marginBottom: 10,
-        fontWeight: "600",
-        fontSize: 14,
-        marginLeft: 4,
-      }}
-    >
-      {label}
-    </Text>
-    <TextInput
-      style={{
-        backgroundColor: "white",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-        padding: 16,
-        borderRadius: 16,
-        color: "#0f172a",
-        fontSize: 16,
-        shadowColor: "#f1f5f9",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 1,
-        shadowRadius: 2,
-        elevation: 2,
-      }}
-      placeholder={placeholder}
-      placeholderTextColor="#94a3b8"
-      value={value}
-      onChangeText={onChangeText}
-      autoCapitalize="none"
-      keyboardType={keyboardType}
-      secureTextEntry={secureTextEntry}
-    />
-  </View>
+const LoginInput = React.memo(
+  ({
+    label,
+    value,
+    onChangeText,
+    placeholder,
+    keyboardType = "default",
+    secureTextEntry = false,
+    mt = false,
+  }: any) => (
+    <View style={{ marginTop: mt ? 20 : 0 }}>
+      <Text
+        style={{
+          color: "#334155",
+          marginBottom: 10,
+          fontWeight: "600",
+          fontSize: 14,
+          marginLeft: 4,
+        }}
+      >
+        {label}
+      </Text>
+      <TextInput
+        style={{
+          backgroundColor: "white",
+          borderWidth: 1,
+          borderColor: "#e2e8f0",
+          padding: 16,
+          borderRadius: 16,
+          color: "#0f172a",
+          fontSize: 16,
+          shadowColor: "#f1f5f9",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 1,
+          shadowRadius: 2,
+          elevation: 2,
+        }}
+        placeholder={placeholder}
+        placeholderTextColor="#94a3b8"
+        value={value}
+        onChangeText={onChangeText}
+        autoCapitalize="none"
+        keyboardType={keyboardType}
+        secureTextEntry={secureTextEntry}
+      />
+    </View>
+  ),
+  (prevProps, nextProps) => {
+    return (
+      prevProps.value === nextProps.value &&
+      prevProps.label === nextProps.label &&
+      prevProps.placeholder === nextProps.placeholder &&
+      prevProps.keyboardType === nextProps.keyboardType &&
+      prevProps.secureTextEntry === nextProps.secureTextEntry &&
+      prevProps.mt === nextProps.mt
+    );
+  },
 );
 
 export default function LoginScreen() {
@@ -178,7 +193,19 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async () => {
+  const handleSelectRole = useCallback((role: "owner" | "employee") => {
+    setSelectedRole(role);
+  }, []);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setEmail(text);
+  }, []);
+
+  const handlePasswordChange = useCallback((text: string) => {
+    setPassword(text);
+  }, []);
+
+  const handleLogin = useCallback(async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter email and password");
       return;
@@ -230,21 +257,23 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRole, email, password, router]);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: "#ffffff" }}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           style={{ paddingHorizontal: 24 }}
         >
-          <View style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}
+          >
             {/* Header Section */}
             <View style={{ alignItems: "center", marginBottom: 48 }}>
               <View
@@ -290,7 +319,7 @@ export default function LoginScreen() {
 
             <RoleSwitcher
               selectedRole={selectedRole}
-              onSelect={setSelectedRole}
+              onSelect={handleSelectRole}
             />
 
             {/* Input Fields */}
@@ -300,7 +329,7 @@ export default function LoginScreen() {
                   selectedRole === "owner" ? "Owner Email" : "Employee Email"
                 }
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={handleEmailChange}
                 placeholder="name@company.com"
                 keyboardType="email-address"
               />
@@ -308,10 +337,10 @@ export default function LoginScreen() {
               <LoginInput
                 label="Password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 placeholder="Enter your password"
-                secureTextEntry
-                mt
+                secureTextEntry={true}
+                mt={true}
               />
 
               {/* Action Buttons */}
@@ -391,7 +420,13 @@ export default function LoginScreen() {
             </View>
 
             {/* Footer */}
-            <View style={{ marginTop: "auto", paddingTop: 40, alignItems: "center" }}>
+            <View
+              style={{
+                marginTop: "auto",
+                paddingTop: 40,
+                alignItems: "center",
+              }}
+            >
               <Text
                 style={{
                   color: "#94a3b8",

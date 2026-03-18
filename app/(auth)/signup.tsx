@@ -1,67 +1,79 @@
+import { SafeAreaView } from "@/components/ui/SafeAreaView";
 import { auth, db } from "@/src/config/firebase";
 import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "@/components/ui/SafeAreaView";
-import { StatusBar } from "expo-status-bar";
 
-const SignupInput = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-  mt,
-  keyboardType,
-}: any) => (
-  <View style={{ marginTop: mt ? 20 : 0 }}>
-    <Text
-      style={{
-        color: "#334155",
-        marginBottom: 10,
-        fontWeight: "600",
-        fontSize: 14,
-        marginLeft: 4,
-      }}
-    >
-      {label}
-    </Text>
-    <TextInput
-      style={{
-        backgroundColor: "white",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-        padding: 16,
-        borderRadius: 16,
-        color: "#0f172a",
-        fontSize: 16,
-        shadowColor: "#f1f5f9",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 1,
-        shadowRadius: 2,
-        elevation: 2,
-      }}
-      placeholder={placeholder}
-      placeholderTextColor="#94a3b8"
-      value={value}
-      onChangeText={onChangeText}
-      autoCapitalize={keyboardType === "email-address" ? "none" : undefined}
-      keyboardType={keyboardType}
-      secureTextEntry={secureTextEntry}
-    />
-  </View>
+const SignupInput = React.memo(
+  ({
+    label,
+    value,
+    onChangeText,
+    placeholder,
+    secureTextEntry = false,
+    mt = false,
+    keyboardType = "default",
+  }: any) => (
+    <View style={{ marginTop: mt ? 20 : 0 }}>
+      <Text
+        style={{
+          color: "#334155",
+          marginBottom: 10,
+          fontWeight: "600",
+          fontSize: 14,
+          marginLeft: 4,
+        }}
+      >
+        {label}
+      </Text>
+      <TextInput
+        style={{
+          backgroundColor: "white",
+          borderWidth: 1,
+          borderColor: "#e2e8f0",
+          padding: 16,
+          borderRadius: 16,
+          color: "#0f172a",
+          fontSize: 16,
+          shadowColor: "#f1f5f9",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 1,
+          shadowRadius: 2,
+          elevation: 2,
+        }}
+        placeholder={placeholder}
+        placeholderTextColor="#94a3b8"
+        value={value}
+        onChangeText={onChangeText}
+        autoCapitalize={keyboardType === "email-address" ? "none" : undefined}
+        keyboardType={keyboardType}
+        secureTextEntry={secureTextEntry}
+      />
+    </View>
+  ),
+  (prevProps, nextProps) => {
+    return (
+      prevProps.value === nextProps.value &&
+      prevProps.label === nextProps.label &&
+      prevProps.placeholder === nextProps.placeholder &&
+      prevProps.keyboardType === nextProps.keyboardType &&
+      prevProps.secureTextEntry === nextProps.secureTextEntry &&
+      prevProps.mt === nextProps.mt
+    );
+  },
 );
 
 export default function OwnerSignupScreen() {
@@ -71,7 +83,19 @@ export default function OwnerSignupScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignup = async () => {
+  const handleNameChange = useCallback((text: string) => {
+    setName(text);
+  }, []);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setEmail(text);
+  }, []);
+
+  const handlePasswordChange = useCallback((text: string) => {
+    setPassword(text);
+  }, []);
+
+  const handleSignup = useCallback(async () => {
     if (!name || !email || !password) {
       Alert.alert("Error", "Please fill name, email, and password");
       return;
@@ -104,21 +128,23 @@ export default function OwnerSignupScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [name, email, password, router]);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ backgroundColor: "#ffffff" }}>
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: "#ffffff" }}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           style={{ paddingHorizontal: 24 }}
         >
-          <View style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}
+          >
             {/* Header Section */}
             <View style={{ alignItems: "center", marginBottom: 40 }}>
               <View
@@ -168,25 +194,25 @@ export default function OwnerSignupScreen() {
                 label="Full Name"
                 placeholder="Enter your name"
                 value={name}
-                onChangeText={setName}
+                onChangeText={handleNameChange}
               />
 
               <SignupInput
                 label="Email Address"
                 placeholder="owner@company.com"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={handleEmailChange}
                 keyboardType="email-address"
-                mt
+                mt={true}
               />
 
               <SignupInput
                 label="Password"
                 placeholder="Min. 8 characters"
                 value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                mt
+                onChangeText={handlePasswordChange}
+                secureTextEntry={true}
+                mt={true}
               />
 
               <TouchableOpacity
@@ -234,7 +260,13 @@ export default function OwnerSignupScreen() {
             </View>
 
             {/* Footer */}
-            <View style={{ marginTop: "auto", paddingTop: 40, alignItems: "center" }}>
+            <View
+              style={{
+                marginTop: "auto",
+                paddingTop: 40,
+                alignItems: "center",
+              }}
+            >
               <Text
                 style={{
                   color: "#94a3b8",
@@ -253,5 +285,3 @@ export default function OwnerSignupScreen() {
     </SafeAreaView>
   );
 }
-
-
