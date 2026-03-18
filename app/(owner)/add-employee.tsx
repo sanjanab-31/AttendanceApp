@@ -16,8 +16,8 @@ import React, { useCallback, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -352,21 +352,14 @@ export default function AddEmployee() {
                 borderRadius: 16,
                 paddingHorizontal: 16,
                 height: 56,
-                borderColor:
-                  phoneError
-                    ? "#fb7185"
-                    : "#e2e8f0",
+                borderColor: phoneError ? "#fb7185" : "#e2e8f0",
                 backgroundColor: phoneError ? "#fff1f2" : "white",
                 elevation: 0,
               }}
             >
               <TabBarIcon
                 name="call"
-                color={
-                  phoneError
-                    ? "#fb7185"
-                    : "#94a3b8"
-                }
+                color={phoneError ? "#fb7185" : "#94a3b8"}
                 size={20}
               />
               <TextInput
