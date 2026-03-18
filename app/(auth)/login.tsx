@@ -15,7 +15,6 @@ import {
 import React, { useCallback, useState } from "react";
 import {
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -24,6 +23,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useToast } from "@/src/context/ToastContext";
 
 const resolveRole = async (uid: string, userEmail: string) => {
   const ownerByUid = await getDoc(doc(db, "users", uid));
@@ -59,64 +60,33 @@ const RoleSwitcher = React.memo(
     selectedRole: string;
     onSelect: (role: "owner" | "employee") => void;
   }) => (
-    <View
-      style={{
-        backgroundColor: "rgba(226, 232, 240, 0.5)",
-        borderRadius: 16,
-        padding: 6,
-        flexDirection: "row",
-        marginBottom: 32,
-      }}
-    >
+    <View className="flex-row bg-slate-100/50 p-1.5 rounded-2xl mb-8 border border-slate-200">
       <TouchableOpacity
         onPress={() => onSelect("owner")}
-        activeOpacity={0.7}
-        style={{
-          flex: 1,
-          paddingVertical: 14,
-          borderRadius: 12,
-          alignItems: "center",
-          backgroundColor: selectedRole === "owner" ? "white" : "transparent",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: selectedRole === "owner" ? 0.05 : 0,
-          shadowRadius: 2,
-          elevation: selectedRole === "owner" ? 2 : 0,
-        }}
+        className={`flex-1 py-3.5 rounded-xl items-center ${
+          selectedRole === "owner" ? "bg-white shadow-sm" : "bg-transparent"
+        }`}
       >
         <Text
-          style={{
-            fontWeight: "bold",
-            fontSize: 15,
-            color: selectedRole === "owner" ? "#4f46e5" : "#64748b",
-          }}
+          className={`font-semibold text-[15px] ${
+            selectedRole === "owner" ? "text-indigo-600" : "text-slate-500"
+          }`}
+          style={{ fontFamily: "Poppins_600SemiBold" }}
         >
           Owner
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => onSelect("employee")}
-        activeOpacity={0.7}
-        style={{
-          flex: 1,
-          paddingVertical: 14,
-          borderRadius: 12,
-          alignItems: "center",
-          backgroundColor:
-            selectedRole === "employee" ? "white" : "transparent",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: selectedRole === "employee" ? 0.05 : 0,
-          shadowRadius: 2,
-          elevation: selectedRole === "employee" ? 2 : 0,
-        }}
+        className={`flex-1 py-3.5 rounded-xl items-center ${
+          selectedRole === "employee" ? "bg-white shadow-sm" : "bg-transparent"
+        }`}
       >
         <Text
-          style={{
-            fontWeight: "bold",
-            fontSize: 15,
-            color: selectedRole === "employee" ? "#4f46e5" : "#64748b",
-          }}
+          className={`font-semibold text-[15px] ${
+            selectedRole === "employee" ? "text-indigo-600" : "text-slate-500"
+          }`}
+          style={{ fontFamily: "Poppins_600SemiBold" }}
         >
           Employee
         </Text>
@@ -131,57 +101,36 @@ const LoginInput = React.memo(
     value,
     onChangeText,
     placeholder,
+    icon,
+    rightElement,
     keyboardType = "default",
     secureTextEntry = false,
     mt = false,
   }: any) => (
-    <View style={{ marginTop: mt ? 20 : 0 }}>
+    <View className={mt ? "mt-5" : ""}>
       <Text
-        style={{
-          color: "#334155",
-          marginBottom: 10,
-          fontWeight: "600",
-          fontSize: 14,
-          marginLeft: 4,
-        }}
+        className="text-slate-700 mb-2 font-medium text-sm ml-1"
+        style={{ fontFamily: "Poppins_500Medium" }}
       >
         {label}
       </Text>
-      <TextInput
-        style={{
-          backgroundColor: "white",
-          borderWidth: 1,
-          borderColor: "#e2e8f0",
-          padding: 16,
-          borderRadius: 16,
-          color: "#0f172a",
-          fontSize: 16,
-          shadowColor: "#f1f5f9",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 1,
-          shadowRadius: 2,
-          elevation: 2,
-        }}
-        placeholder={placeholder}
-        placeholderTextColor="#94a3b8"
-        value={value}
-        onChangeText={onChangeText}
-        autoCapitalize="none"
-        keyboardType={keyboardType}
-        secureTextEntry={secureTextEntry}
-      />
+      <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-1 shadow-sm">
+        <Ionicons name={icon} size={20} color="#6366f1" className="mr-3" />
+        <TextInput
+          className="flex-1 text-slate-900 text-base py-3 px-1"
+          style={{ fontFamily: "Poppins_400Regular" }}
+          placeholder={placeholder}
+          placeholderTextColor="#94a3b8"
+          value={value}
+          onChangeText={onChangeText}
+          autoCapitalize="none"
+          keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry}
+        />
+        {rightElement}
+      </View>
     </View>
   ),
-  (prevProps, nextProps) => {
-    return (
-      prevProps.value === nextProps.value &&
-      prevProps.label === nextProps.label &&
-      prevProps.placeholder === nextProps.placeholder &&
-      prevProps.keyboardType === nextProps.keyboardType &&
-      prevProps.secureTextEntry === nextProps.secureTextEntry &&
-      prevProps.mt === nextProps.mt
-    );
-  },
 );
 
 export default function LoginScreen() {
@@ -191,7 +140,9 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { showToast } = useToast();
 
   const handleSelectRole = useCallback((role: "owner" | "employee") => {
     setSelectedRole(role);
@@ -206,8 +157,22 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = useCallback(async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter email and password");
+    // Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      showToast("Please enter your email", "error");
+      return;
+    }
+    if (!emailRegex.test(email.trim())) {
+      showToast("Please enter a valid email address", "error");
+      return;
+    }
+    if (!password) {
+      showToast("Please enter your password", "error");
+      return;
+    }
+    if (password.length < 6) {
+      showToast("Password must be at least 6 characters", "error");
       return;
     }
 
@@ -226,10 +191,7 @@ export default function LoginScreen() {
 
       if (!actualRole) {
         await signOut(auth);
-        Alert.alert(
-          "Access Denied",
-          "Your account profile was not found. Please contact the owner.",
-        );
+        showToast("Account profile not found", "error");
         return;
       }
 
@@ -237,81 +199,59 @@ export default function LoginScreen() {
 
       if (selectedRole === "owner" && !isOwnerRole) {
         await signOut(auth);
-        Alert.alert("Login Error", "This account is not an owner account.");
+        showToast("This account is not an owner account", "error");
         return;
       }
 
       if (selectedRole === "employee" && actualRole !== "employee") {
         await signOut(auth);
-        Alert.alert("Login Error", "This account is not an employee account.");
+        showToast("This account is not an employee account", "error");
         return;
       }
 
+      showToast("Welcome back!", "success");
       router.replace(
         isOwnerRole
           ? "/(owner)/(tabs)/dashboard"
           : "/(employee)/(tabs)/dashboard",
       );
     } catch (error: any) {
-      Alert.alert("Login Failed", error.message);
+      let message = "Login failed. Please check your credentials.";
+      if (error.code === "auth/user-not-found") message = "No account found with this email.";
+      if (error.code === "auth/wrong-password") message = "Incorrect password.";
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
-  }, [selectedRole, email, password, router]);
+  }, [selectedRole, email, password, router, showToast]);
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#ffffff" }}>
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1, backgroundColor: "#ffffff" }}
+        className="flex-1"
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
-          style={{ paddingHorizontal: 24 }}
+          className="px-8"
         >
-          <View
-            style={{ flex: 1, justifyContent: "center", paddingVertical: 48 }}
-          >
+          <View className="flex-1 justify-center py-12">
             {/* Header Section */}
-            <View style={{ alignItems: "center", marginBottom: 48 }}>
-              <View
-                style={{
-                  width: 96,
-                  height: 96,
-                  backgroundColor: "#4f46e5",
-                  borderRadius: 24,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 24,
-                  shadowColor: "#4f46e5",
-                  shadowOffset: { width: 0, height: 10 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 20,
-                  elevation: 10,
-                }}
-              >
-                <Text style={{ fontSize: 40, color: "white" }}>🕒</Text>
+            <View className="items-center mb-12">
+              <View className="w-24 h-24 bg-indigo-600 rounded-3xl items-center justify-center mb-6 shadow-xl shadow-indigo-200">
+                <Ionicons name="time" size={48} color="white" />
               </View>
               <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: "bold",
-                  color: "#0f172a",
-                  letterSpacing: -0.5,
-                }}
+                className="text-4xl font-bold text-slate-900 tracking-tight"
+                style={{ fontFamily: "Poppins_700Bold" }}
               >
-                Attendance<Text style={{ color: "#4f46e5" }}>Pro</Text>
+                Attendance<Text className="text-indigo-600">Pro</Text>
               </Text>
               <Text
-                style={{
-                  color: "#64748b",
-                  marginTop: 8,
-                  textAlign: "center",
-                  fontSize: 18,
-                  fontWeight: "500",
-                }}
+                className="text-slate-500 mt-2 text-center text-lg font-medium"
+                style={{ fontFamily: "Poppins_500Medium" }}
               >
                 Manage your workplace with precision
               </Text>
@@ -325,12 +265,11 @@ export default function LoginScreen() {
             {/* Input Fields */}
             <View>
               <LoginInput
-                label={
-                  selectedRole === "owner" ? "Owner Email" : "Employee Email"
-                }
+                label={selectedRole === "owner" ? "Owner Email" : "Employee Email"}
                 value={email}
                 onChangeText={handleEmailChange}
                 placeholder="name@company.com"
+                icon="mail-outline"
                 keyboardType="email-address"
               />
 
@@ -339,25 +278,28 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={handlePasswordChange}
                 placeholder="Enter your password"
-                secureTextEntry={true}
+                icon="lock-closed-outline"
+                secureTextEntry={!showPassword}
                 mt={true}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    className="p-2"
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color="#94a3b8"
+                    />
+                  </TouchableOpacity>
+                }
               />
 
-              {/* Action Buttons */}
+              {/* Action Button */}
               <TouchableOpacity
-                style={{
-                  backgroundColor: "#4f46e5",
-                  padding: 20,
-                  borderRadius: 16,
-                  marginTop: 40,
-                  alignItems: "center",
-                  shadowColor: "#4f46e5",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 8,
-                  elevation: 4,
-                  opacity: loading ? 0.7 : 1,
-                }}
+                className={`bg-indigo-600 py-5 rounded-2xl mt-10 items-center shadow-lg shadow-indigo-300 ${
+                  loading ? "opacity-70" : "opacity-100"
+                }`}
                 onPress={handleLogin}
                 disabled={loading}
               >
@@ -365,79 +307,13 @@ export default function LoginScreen() {
                   <ActivityIndicator color="white" />
                 ) : (
                   <Text
-                    style={{ color: "white", fontWeight: "bold", fontSize: 18 }}
+                    className="text-white font-bold text-lg"
+                    style={{ fontFamily: "Poppins_600SemiBold" }}
                   >
                     Sign In
                   </Text>
                 )}
               </TouchableOpacity>
-
-              {selectedRole === "owner" ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginTop: 24,
-                  }}
-                >
-                  <Text style={{ color: "#64748b", fontWeight: "500" }}>
-                    Don't have an account?{" "}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => router.push("/(auth)/signup")}
-                  >
-                    <Text style={{ color: "#4f46e5", fontWeight: "bold" }}>
-                      Create one
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View
-                  style={{
-                    marginTop: 32,
-                    alignItems: "center",
-                    backgroundColor: "#fffbeb",
-                    padding: 16,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: "#fef3c7",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#92400e",
-                      textAlign: "center",
-                      fontSize: 14,
-                      fontWeight: "500",
-                    }}
-                  >
-                    Employee accounts are managed by your employer. Contact your
-                    owner for access credentials.
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Footer */}
-            <View
-              style={{
-                marginTop: "auto",
-                paddingTop: 40,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  color: "#94a3b8",
-                  fontSize: 12,
-                  fontWeight: "600",
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                }}
-              >
-                Powered by AttendancePro v1.0
-              </Text>
             </View>
           </View>
         </ScrollView>
