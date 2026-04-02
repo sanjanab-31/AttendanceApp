@@ -1,5 +1,7 @@
 import { SafeAreaView } from "@/components/ui/SafeAreaView";
 import { auth, db } from "@/src/config/firebase";
+import { useToast } from "@/src/context/ToastContext";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
@@ -23,8 +25,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useToast } from "@/src/context/ToastContext";
 
 const resolveRole = async (uid: string, userEmail: string) => {
   const ownerByUid = await getDoc(doc(db, "users", uid));
@@ -217,13 +217,14 @@ export default function LoginScreen() {
       );
     } catch (error: any) {
       let message = "Login failed. Please check your credentials.";
-      if (error.code === "auth/user-not-found") message = "No account found with this email.";
+      if (error.code === "auth/user-not-found")
+        message = "No account found with this email.";
       if (error.code === "auth/wrong-password") message = "Incorrect password.";
       showToast(message, "error");
     } finally {
       setLoading(false);
     }
-  }, [selectedRole, email, password, router, showToast]);
+  }, [selectedRole, email, password, showToast, router]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -265,7 +266,9 @@ export default function LoginScreen() {
             {/* Input Fields */}
             <View>
               <LoginInput
-                label={selectedRole === "owner" ? "Owner Email" : "Employee Email"}
+                label={
+                  selectedRole === "owner" ? "Owner Email" : "Employee Email"
+                }
                 value={email}
                 onChangeText={handleEmailChange}
                 placeholder="name@company.com"

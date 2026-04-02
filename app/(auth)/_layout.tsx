@@ -11,19 +11,12 @@ export default function AuthLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    // Delay slightly to ensure tree stability on Fabric
-    const timer = setTimeout(() => {
-      if (loading) return;
+    if (loading || !user || !userData?.role) return;
 
-      if (user && userData?.role) {
-        router.replace(
-          isAdmin ? "/(owner)/(tabs)/dashboard" : "/(employee)/(tabs)/dashboard"
-        );
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [user, userData, loading, isAdmin]);
+    router.replace(
+      isAdmin ? "/(owner)/(tabs)/dashboard" : "/(employee)/(tabs)/dashboard",
+    );
+  }, [loading, user, userData, isAdmin, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -31,4 +24,3 @@ export default function AuthLayout() {
     </Stack>
   );
 }
-

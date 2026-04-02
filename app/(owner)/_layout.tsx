@@ -1,27 +1,10 @@
-import { useAuth } from "@/src/context/AuthContext";
-import { Stack, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { Stack } from "expo-router";
 
 /**
  * Owner Layout
  * Always returns a Stack to keep navigation context stable.
  */
 export default function OwnerLayout() {
-  const { user, loading, isAdmin } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (loading) return;
-
-      if (!user || !isAdmin) {
-        router.replace("/(auth)/login");
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [user, isAdmin, loading]);
-
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
