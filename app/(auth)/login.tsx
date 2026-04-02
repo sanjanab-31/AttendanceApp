@@ -35,65 +35,8 @@ const resolveRole = async (uid: string, userEmail: string) => {
   );
   if (!ownerByEmail.empty) return ownerByEmail.docs[0].data()?.role;
 
-  const empByUid = await getDocs(
-    query(collection(db, "employees"), where("uid", "==", uid), limit(1)),
-  );
-  if (!empByUid.empty) return empByUid.docs[0].data()?.role;
-
-  const empByEmail = await getDocs(
-    query(
-      collection(db, "employees"),
-      where("email", "==", userEmail),
-      limit(1),
-    ),
-  );
-  if (!empByEmail.empty) return empByEmail.docs[0].data()?.role;
-
   return null;
 };
-
-const RoleSwitcher = React.memo(
-  ({
-    selectedRole,
-    onSelect,
-  }: {
-    selectedRole: string;
-    onSelect: (role: "owner" | "employee") => void;
-  }) => (
-    <View className="flex-row bg-slate-100/50 p-1.5 rounded-2xl mb-8 border border-slate-200">
-      <TouchableOpacity
-        onPress={() => onSelect("owner")}
-        className={`flex-1 py-3.5 rounded-xl items-center ${
-          selectedRole === "owner" ? "bg-white shadow-sm" : "bg-transparent"
-        }`}
-      >
-        <Text
-          className={`font-semibold text-[15px] ${
-            selectedRole === "owner" ? "text-indigo-600" : "text-slate-500"
-          }`}
-          style={{ fontFamily: "Poppins_600SemiBold" }}
-        >
-          Owner
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => onSelect("employee")}
-        className={`flex-1 py-3.5 rounded-xl items-center ${
-          selectedRole === "employee" ? "bg-white shadow-sm" : "bg-transparent"
-        }`}
-      >
-        <Text
-          className={`font-semibold text-[15px] ${
-            selectedRole === "employee" ? "text-indigo-600" : "text-slate-500"
-          }`}
-          style={{ fontFamily: "Poppins_600SemiBold" }}
-        >
-          Employee
-        </Text>
-      </TouchableOpacity>
-    </View>
-  ),
-);
 
 const LoginInput = React.memo(
   ({
@@ -132,21 +75,15 @@ const LoginInput = React.memo(
     </View>
   ),
 );
+LoginInput.displayName = "LoginInput";
 
 export default function LoginScreen() {
-  const [selectedRole, setSelectedRole] = useState<"owner" | "employee">(
-    "owner",
-  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
-
-  const handleSelectRole = useCallback((role: "owner" | "employee") => {
-    setSelectedRole(role);
-  }, []);
 
   const handleEmailChange = useCallback((text: string) => {
     setEmail(text);
@@ -197,24 +134,14 @@ export default function LoginScreen() {
 
       const isOwnerRole = actualRole === "owner" || actualRole === "admin";
 
-      if (selectedRole === "owner" && !isOwnerRole) {
+      if (!isOwnerRole) {
         await signOut(auth);
-        showToast("This account is not an owner account", "error");
-        return;
-      }
-
-      if (selectedRole === "employee" && actualRole !== "employee") {
-        await signOut(auth);
-        showToast("This account is not an employee account", "error");
+        showToast("Only owner accounts are allowed", "error");
         return;
       }
 
       showToast("Welcome back!", "success");
-      router.replace(
-        isOwnerRole
-          ? "/(owner)/(tabs)/dashboard"
-          : "/(employee)/(tabs)/dashboard",
-      );
+      router.replace("/(owner)/(tabs)/dashboard");
     } catch (error: any) {
       let message = "Login failed. Please check your credentials.";
       if (error.code === "auth/user-not-found")
@@ -224,7 +151,7 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  }, [selectedRole, email, password, showToast, router]);
+  }, [email, password, showToast, router]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -258,17 +185,10 @@ export default function LoginScreen() {
               </Text>
             </View>
 
-            <RoleSwitcher
-              selectedRole={selectedRole}
-              onSelect={handleSelectRole}
-            />
-
             {/* Input Fields */}
             <View>
               <LoginInput
-                label={
-                  selectedRole === "owner" ? "Owner Email" : "Employee Email"
-                }
+                label="Owner Email"
                 value={email}
                 onChangeText={handleEmailChange}
                 placeholder="name@company.com"

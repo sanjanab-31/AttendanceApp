@@ -49,7 +49,7 @@ function RootLayoutNav() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(owner)" options={{ headerShown: false }} />
-      <Stack.Screen name="(employee)" options={{ headerShown: false }} />
+      {/* Employee route group disabled: app runs in owner-only mode. */}
     </Stack>
   );
 }

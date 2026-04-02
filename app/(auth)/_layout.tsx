@@ -7,16 +7,22 @@ import { useEffect } from "react";
  * Always returns a Stack to keep navigation context stable.
  */
 export default function AuthLayout() {
-  const { user, userData, loading, isAdmin } = useAuth();
+  const { user, userData, loading, isAdmin, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (loading || !user || !userData?.role) return;
 
-    router.replace(
-      isAdmin ? "/(owner)/(tabs)/dashboard" : "/(employee)/(tabs)/dashboard",
-    );
-  }, [loading, user, userData, isAdmin, router]);
+    if (!isAdmin) {
+      logout().catch(() => {
+        /* ignore */
+      });
+      router.replace("/(auth)/login");
+      return;
+    }
+
+    router.replace("/(owner)/(tabs)/dashboard");
+  }, [loading, user, userData, isAdmin, logout, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
