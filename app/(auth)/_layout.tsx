@@ -1,5 +1,5 @@
 import { useAuth } from "@/src/context/AuthContext";
-import { Stack, useRouter } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { useEffect } from "react";
 
 /**
@@ -8,25 +8,26 @@ import { useEffect } from "react";
  */
 export default function AuthLayout() {
   const { user, userData, loading, isAdmin, logout } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
-    if (loading || !user || !userData?.role) return;
-
-    if (!isAdmin) {
+    if (!loading && user && userData?.role && !isAdmin) {
       logout().catch(() => {
         /* ignore */
       });
-      router.replace("/(auth)/login");
-      return;
     }
+  }, [loading, user, userData, isAdmin, logout]);
 
-    router.replace("/(owner)/(tabs)/dashboard");
-  }, [loading, user, userData, isAdmin, logout, router]);
+  if (loading || !user || !userData?.role) {
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+      </Stack>
+    );
+  }
 
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-    </Stack>
-  );
+  if (!isAdmin) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  return <Redirect href="/(owner)/(tabs)/dashboard" />;
 }

@@ -1,5 +1,5 @@
 import { useAuth } from "@/src/context/AuthContext";
-import { Redirect } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 
 /**
  * Employee Layout
@@ -8,10 +8,16 @@ import { Redirect } from "expo-router";
 export default function EmployeeLayout() {
   const { user, loading, isAdmin } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    );
+  }
   if (!user) return <Redirect href="/(auth)/login" />;
 
-  return (
-    <Redirect href={isAdmin ? "/(owner)/(tabs)/dashboard" : "/(auth)/login"} />
-  );
+  if (isAdmin) return <Redirect href="/(owner)/(tabs)/dashboard" />;
+
+  return <Redirect href="/(auth)/login" />;
 }

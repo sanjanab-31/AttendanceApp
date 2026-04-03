@@ -221,17 +221,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const markAttendance = async (data: any) => {
+    const employeeId = String(data.employeeId || "").trim();
+    if (!employeeId) {
+      throw new Error("Employee ID is required to mark attendance.");
+    }
+
     const dateKey = getDateKey(data.date);
     const date = Timestamp.fromDate(new Date(`${dateKey}T00:00:00`));
     const payload = {
       ...data,
+      employeeId,
       date,
       dateKey,
       updatedAt: Timestamp.now(),
     };
 
     const existingRecord = await findAttendanceRecordByEmployeeAndDate(
-      data.employeeId,
+      employeeId,
       dateKey,
     );
 
@@ -240,7 +246,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       return "updated";
     }
 
-    const attendanceDocId = `${data.employeeId}_${dateKey}`;
+    const attendanceDocId = `${employeeId}_${dateKey}`;
     await setDoc(doc(db, "attendance", attendanceDocId), {
       ...payload,
       createdAt: Timestamp.now(),
