@@ -15,15 +15,24 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const toDateKey = (date: Date) => {
-  return date.toISOString().split("T")[0];
+const toDateKey = (value: any) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const getRecordDateKey = (date: any) => {
   if (!date) return "";
-  const d = date.toDate ? date.toDate() : new Date(date);
+  const d = date.toDate ? date.toDate() : date;
   return toDateKey(d);
 };
+
+const normalizeText = (value: any) =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
 
 // Circular Stat Component (Just the circle and label, no box)
 const CircularStat = ({
@@ -181,9 +190,47 @@ export default function OwnerDashboard() {
     (rec) => getRecordDateKey(rec.date) === today,
   );
 
-  const presentToday = new Set(
-    todayRecords.map((rec) => rec.employeeId || rec.employeeName),
-  ).size;
+  const employeeKeySet = new Set(
+    employees
+      .map(
+        (emp: any) =>
+          emp.employeeId ||
+          emp.id ||
+          normalizeText(emp.email) ||
+          normalizeText(emp.name),
+      )
+      .filter(Boolean),
+  );
+
+  const employeeNameToKey = new Map(
+    employees
+      .filter((emp: any) => normalizeText(emp.name))
+      .map((emp: any) => [
+        normalizeText(emp.name),
+        emp.employeeId || emp.id || normalizeText(emp.email),
+      ]),
+  );
+
+  const presentEmployeeKeys = new Set(
+    todayRecords
+      .map((record: any) => {
+        const directKey =
+          record.employeeId ||
+          record.employeeDocId ||
+          normalizeText(record.employeeEmail);
+        if (directKey && employeeKeySet.has(directKey)) {
+          return directKey;
+        }
+
+        const mappedByName = employeeNameToKey.get(
+          normalizeText(record.employeeName),
+        );
+        return mappedByName || "";
+      })
+      .filter(Boolean),
+  );
+
+  const presentToday = presentEmployeeKeys.size;
   const absentToday = Math.max(totalEmployees - presentToday, 0);
 
   const filteredEmployees = searchQuery.trim()
