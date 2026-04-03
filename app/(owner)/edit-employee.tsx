@@ -1,20 +1,21 @@
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { SafeAreaView } from "@/components/ui/SafeAreaView";
 import { useData } from "@/src/context/DataContext";
 import { useToast } from "@/src/context/ToastContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type InputFieldProps = {
   label: string;
@@ -25,6 +26,7 @@ type InputFieldProps = {
   maxLength?: number;
   iconName?: any;
   error?: string;
+  autoFocus?: boolean;
 };
 
 const InputField = React.memo(
@@ -37,37 +39,22 @@ const InputField = React.memo(
     maxLength,
     iconName,
     error,
+    autoFocus,
   }: InputFieldProps) => {
     const [isFocused, setIsFocused] = useState(false);
 
-    const handleFocus = useCallback(() => {
-      setIsFocused(true);
-    }, []);
-
-    const handleBlur = useCallback(() => {
-      setIsFocused(false);
-    }, []);
-
     return (
-      <View className="mb-4">
-        <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">
-          {label}
-        </Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>{label}</Text>
         <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            borderWidth: 1,
-            borderRadius: 16,
-            paddingHorizontal: 16,
-            height: 56,
-            borderColor: isFocused ? "#4f46e5" : error ? "#fb7185" : "#e2e8f0",
-            backgroundColor: error ? "#fff1f2" : "white",
-            elevation: isFocused ? 2 : 0,
-          }}
+          style={[
+            styles.inputWrapper,
+            isFocused ? styles.inputWrapperFocused : null,
+            error ? styles.inputWrapperError : null,
+          ]}
         >
           {iconName && (
-            <View className="mr-3">
+            <View style={styles.inputIconContainer}>
               <TabBarIcon
                 name={iconName}
                 color={isFocused ? "#4f46e5" : error ? "#fb7185" : "#94a3b8"}
@@ -76,42 +63,30 @@ const InputField = React.memo(
             </View>
           )}
           <TextInput
-            className="flex-1 text-[15px] font-medium text-slate-800 h-full"
+            style={styles.inputText}
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
             placeholderTextColor="#94a3b8"
             keyboardType={keyboardType}
             maxLength={maxLength}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            autoFocus={autoFocus}
           />
         </View>
-        {error ? (
-          <Text className="text-rose-500 text-[12px] font-medium mt-1 ml-1">
-            {error}
-          </Text>
-        ) : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
     );
-  },
-  (prevProps, nextProps) => {
-    // Custom comparison - re-render only if these change
-    return (
-      prevProps.value === nextProps.value &&
-      prevProps.label === nextProps.label &&
-      prevProps.placeholder === nextProps.placeholder &&
-      prevProps.keyboardType === nextProps.keyboardType &&
-      prevProps.maxLength === nextProps.maxLength &&
-      prevProps.iconName === nextProps.iconName &&
-      prevProps.error === nextProps.error &&
-      prevProps.onChangeText === nextProps.onChangeText
-    );
-  },
+  }
 );
 
-const parseDateFromKey = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
+const parseDateFromKey = (dateValue: any) => {
+  if (!dateValue) return new Date();
+  if (typeof dateValue?.toDate === 'function') return dateValue.toDate();
+  
+  const dateStr = String(dateValue);
+  const [year, month, day] = dateStr.split("-").map(Number);
   if (!year || !month || !day) return new Date();
   const parsedDate = new Date(year, month - 1, day);
   return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
@@ -146,8 +121,8 @@ export default function EditEmployee() {
   const [loading, setLoading] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [employeeConfigured, setEmployeeConfigured] = useState(false);
+  const lastLoadedId = useRef<string | null>(null);
 
-  // Memoized callbacks for each field to prevent unnecessary re-renders
   const handleNameChange = useCallback((text: string) => {
     setFormData((prev) => ({ ...prev, name: text }));
   }, []);
@@ -167,23 +142,22 @@ export default function EditEmployee() {
     setFormData((prev) => ({ ...prev, hourlyRate: text }));
   }, []);
 
-  const handleJoiningDateChange = useCallback((text: string) => {
-    setFormData((prev) => ({ ...prev, joiningDate: text }));
-  }, []);
-
   useEffect(() => {
+    if (lastLoadedId.current === id && employeeConfigured) return;
+
     const employee = employees.find((e: any) => e.id === id);
     if (employee) {
       setFormData({
-        name: employee.name,
-        phone: employee.phone,
-        email: employee.email,
-        hourlyRate: employee.hourlyRate.toString(),
-        joiningDate: employee.joiningDate,
+        name: employee.name || "",
+        phone: employee.phone || "",
+        email: employee.email || "",
+        hourlyRate: employee.hourlyRate ? employee.hourlyRate.toString() : "",
+        joiningDate: employee.joiningDate || "",
       });
+      lastLoadedId.current = String(id);
       setEmployeeConfigured(true);
     }
-  }, [id, employees]);
+  }, [id, employees, employeeConfigured]);
 
   const handleSave = async () => {
     const { name, phone, email, hourlyRate, joiningDate } = formData;
@@ -192,29 +166,23 @@ export default function EditEmployee() {
     const normalizedEmail = email.trim().toLowerCase();
     const parsedRate = parseFloat(hourlyRate);
 
-    if (
-      !trimmedName ||
-      !trimmedPhone ||
-      !normalizedEmail ||
-      !hourlyRate ||
-      !joiningDate
-    ) {
+    if (!trimmedName || !trimmedPhone || !normalizedEmail || !hourlyRate || !joiningDate) {
       showToast("Please fill all fields", "error");
       return;
     }
 
     if (!phoneRegex.test(trimmedPhone)) {
-      showToast("Phone number must be exactly 10 digits", "error");
+      showToast("Phone number must be 10 digits", "error");
       return;
     }
 
     if (!emailRegex.test(normalizedEmail)) {
-      showToast("Please enter a valid email address", "error");
+      showToast("Please enter a valid email", "error");
       return;
     }
 
     if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
-      showToast("Hourly rate must be a valid number greater than 0", "error");
+      showToast("Invalid hourly rate", "error");
       return;
     }
 
@@ -223,18 +191,13 @@ export default function EditEmployee() {
 
   const confirmUpdate = async () => {
     const { name, phone, email, hourlyRate, joiningDate } = formData;
-    const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-    const parsedRate = parseFloat(hourlyRate);
-
     setLoading(true);
     try {
       await updateEmployee(id as string, {
-        name: trimmedName,
-        phone: trimmedPhone,
-        email: normalizedEmail,
-        hourlyRate: parsedRate,
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim().toLowerCase(),
+        hourlyRate: parseFloat(hourlyRate),
         joiningDate,
       });
 
@@ -248,126 +211,113 @@ export default function EditEmployee() {
     }
   };
 
-  return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: "#ffffff" }}
-    >
+  const content = (
+    <>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
-        <View className="flex-row items-center px-6 py-4">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              width: 40,
-              height: 40,
-              backgroundColor: "white",
-              borderRadius: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              borderWidth: 1,
-              borderColor: "#e2e8f0",
-              elevation: 1,
-            }}
-          >
-            <TabBarIcon name="arrow-back" color="#0f172a" size={20} />
-          </TouchableOpacity>
-          <View className="ml-4">
-            <Text className="text-xl font-extrabold text-slate-900">
-              Edit Member
-            </Text>
-            <Text className="text-[13px] text-slate-500 font-medium mt-0.5">
-              Update{" "}
-              {employeeConfigured ? formData.name.split(" ")[0] : "staff"}'s
-              details
-            </Text>
-          </View>
-        </View>
-
-        <ScrollView
-          style={{ flex: 1 }}
-          className="px-6 pt-2"
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
         >
-          {employeeConfigured ? (
-            <View className="mb-6">
-              <InputField
-                label="Full Name"
-                iconName="person"
-                value={formData.name}
-                onChangeText={handleNameChange}
-                placeholder="John Doe"
-              />
-              <InputField
-                label="Phone Number"
-                iconName="call"
-                value={formData.phone}
-                onChangeText={handlePhoneChange}
-                placeholder="1234567890"
-                keyboardType="phone-pad"
-                maxLength={10}
-                error={
-                  formData.phone.length > 0 && formData.phone.length !== 10
-                    ? "Must be exactly 10 digits"
-                    : undefined
-                }
-              />
-              <InputField
-                label="Email Address"
-                iconName="mail"
-                value={formData.email}
-                onChangeText={handleEmailChange}
-                placeholder="john@example.com"
-                keyboardType="email-address"
-              />
+          <TabBarIcon name="arrow-back" color="#0f172a" size={20} />
+        </TouchableOpacity>
+        <View style={styles.headerText}>
+          <Text style={styles.headerTitle}>Edit Member</Text>
+          <Text style={styles.headerSubtitle}>
+            Update {employeeConfigured ? formData.name.split(" ")[0] : "staff"}'s details
+          </Text>
+        </View>
+      </View>
 
-              <View className="flex-row justify-between mb-4">
-                <View className="flex-1 mr-2">
-                  <InputField
-                    label="Hourly Rate (â‚¹)"
-                    iconName="cash"
-                    value={formData.hourlyRate}
-                    onChangeText={handleHourlyRateChange}
-                    placeholder="e.g. 500"
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View className="flex-1 ml-2">
-                  <Text className="text-[13px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">
-                    Joining Date
+      <ScrollView
+        style={styles.flex1}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {employeeConfigured ? (
+          <View style={styles.formContainer}>
+            <InputField
+              label="Full Name"
+              iconName="person"
+              value={formData.name}
+              onChangeText={handleNameChange}
+              placeholder="John Doe"
+              autoFocus={true}
+            />
+            <InputField
+              label="Phone Number"
+              iconName="call"
+              value={formData.phone}
+              onChangeText={handlePhoneChange}
+              placeholder="1234567890"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={
+                formData.phone.length > 0 && formData.phone.length !== 10
+                  ? "Must be exactly 10 digits"
+                  : undefined
+              }
+            />
+            <InputField
+              label="Email Address"
+              iconName="mail"
+              value={formData.email}
+              onChangeText={handleEmailChange}
+              placeholder="john@example.com"
+              keyboardType="email-address"
+            />
+
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <InputField
+                  label="Hourly Rate (₹)"
+                  iconName="cash"
+                  value={formData.hourlyRate}
+                  onChangeText={handleHourlyRateChange}
+                  placeholder="e.g. 500"
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.halfWidth}>
+                <Text style={styles.inputLabel}>Joining Date</Text>
+                <View style={styles.dateDisplay}>
+                  <TabBarIcon name="calendar" color="#94a3b8" size={20} />
+                  <Text style={styles.dateDisplayText}>
+                    {formatDateDisplay(formData.joiningDate)}
                   </Text>
-                  <View className="flex-row items-center bg-slate-100 border border-slate-200 rounded-2xl px-4 h-14">
-                    <TabBarIcon name="calendar" color="#94a3b8" size={20} />
-                    <Text className="text-[14px] font-bold text-slate-500 ml-3">
-                      {formatDateDisplay(formData.joiningDate)}
-                    </Text>
-                  </View>
                 </View>
               </View>
+            </View>
 
-              <TouchableOpacity
-                className={`py-4 rounded-2xl items-center shadow-lg mt-4 mb-10 ${loading ? "bg-indigo-400" : "bg-indigo-600 shadow-indigo-200"}`}
-                onPress={handleSave}
-                disabled={loading}
-              >
-                <Text className="text-white font-extrabold text-[16px]">
-                  {loading ? "Updating..." : "Save Changes"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View className="items-center justify-center py-20">
-              <Text className="text-slate-500 font-medium">
-                Loading details...
+            <TouchableOpacity
+              style={[styles.saveButton, loading ? styles.saveButtonLoading : null]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              <Text style={styles.saveButtonText}>
+                {loading ? "Updating..." : "Save Changes"}
               </Text>
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading details...</Text>
+          </View>
+        )}
+      </ScrollView>
+    </>
+  );
+
+  return (
+    <SafeAreaView edges={["top"]} style={styles.safeArea}>
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="padding" style={styles.flex1}>
+          {content}
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={styles.flex1}>{content}</View>
+      )}
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -377,12 +327,159 @@ export default function EditEmployee() {
         variant="update"
         loading={loading}
         onCancel={() => {
-          if (!loading) {
-            setConfirmVisible(false);
-          }
+          if (!loading) setConfirmVisible(false);
         }}
         onConfirm={confirmUpdate}
       />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  flex1: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: "white",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  headerText: {
+    marginLeft: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#0f172a",
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  formContainer: {
+    marginTop: 8,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+    paddingLeft: 4,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+  },
+  inputWrapperFocused: {
+    borderColor: "#4f46e5",
+    backgroundColor: "#ffffff",
+  },
+  inputWrapperError: {
+    borderColor: "#fb7185",
+    backgroundColor: "#fff1f2",
+  },
+  inputIconContainer: {
+    marginRight: 12,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1e293b",
+    height: "100%",
+  },
+  errorText: {
+    color: "#f43f5e",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  halfWidth: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  dateDisplay: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+  },
+  dateDisplayText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#64748b",
+    marginLeft: 12,
+  },
+  saveButton: {
+    backgroundColor: "#4f46e5",
+    paddingVertical: 18,
+    borderRadius: 18,
+    alignItems: "center",
+    marginTop: 24,
+    shadowColor: "#4f46e5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonLoading: {
+    backgroundColor: "#a5b4fc",
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    color: "#94a3b8",
+    fontSize: 15,
+    fontWeight: "500",
+  },
+});
