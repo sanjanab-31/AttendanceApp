@@ -110,8 +110,9 @@ export default function EmployeeHistoryScreen() {
   }, [customFromDate, customToDate, quickFilter]);
 
   const employeeAttendance = useMemo(() => {
+    if (!employee) return [];
     return attendance
-      .filter((record: any) => record.employeeId === id)
+      .filter((record: any) => record.employeeId === employee.id || record.employeeId === employee.employeeId)
       .filter((record: any) => {
         const recordDate = parseDate(record.date);
         if (!recordDate) return false;
@@ -124,11 +125,12 @@ export default function EmployeeHistoryScreen() {
         const dateB = parseDate(b.date)?.getTime() || 0;
         return dateB - dateA; // Descending
       });
-  }, [attendance, id, activeRange]);
+  }, [attendance, employee, activeRange]);
 
   const employeePayments = useMemo(() => {
+    if (!employee) return [];
     return salaryPayments
-      .filter((record: any) => record.employeeId === id)
+      .filter((record: any) => record.employeeId === employee.id || record.employeeId === employee.employeeId)
       .filter((record: any) => {
         const recordDate = parseDate(record.paymentDate);
         if (!recordDate) return false;
@@ -141,7 +143,7 @@ export default function EmployeeHistoryScreen() {
         const dateB = parseDate(b.paymentDate)?.getTime() || 0;
         return dateB - dateA;
       });
-  }, [salaryPayments, id, activeRange]);
+  }, [salaryPayments, employee, activeRange]);
 
   const handleQuickFilterPress = (filter: QuickFilter) => {
     setQuickFilter(filter);
